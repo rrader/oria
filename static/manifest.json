@@ -1,0 +1,21 @@
+{
+    "name": "ORIA - Your Personal Assistant",
+    "short_name": "ORIA",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#ffffff",
+    "theme_color": "#89aff0",
+    "description": "Premium personal assistant for your daily notes and tasks.",
+    "icons": [
+        {
+            "src": "/static/img/mascot.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/static/img/mascot.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

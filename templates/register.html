@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account - ORIA{% endblock %}
+
+{% block content %}
+<header class="nav_header text-center">
+  <h1>ORIA</h1>
+</header>
+
+<main class="container px-4 py-5">
+  <div class="d-flex justify-content-end mb-3">
+    <a href="{{ url_for('login') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold"
+      style="border-color: var(--accent-blue); color: var(--accent-blue);">Log In</a>
+  </div>
+
+  <div class="glass-card mb-5">
+    <h2 class="text-center mb-4 fw-bold">Join ORIA</h2>
+
+    <form action="{{ url_for('register') }}" method="post" class="form">
+      <div class="mb-4">
+        <label for="field_name" class="form-label">Username</label>
+        <input type="text" name="name" id="field_name" placeholder="How should we call you?" class="form-control"
+          required>
+      </div>
+
+      <div class="mb-4">
+        <label for="field_email" class="form-label">Email Address</label>
+        <input type="email" name="e-mail" id="field_email" placeholder="hello@example.com" class="form-control"
+          required>
+      </div>
+
+      <div class="mb-4">
+        <label for="field_password" class="form-label">Secure Password</label>
+        <input type="password" name="password" id="field_password" placeholder="••••••••" class="form-control" required>
+      </div>
+
+      <div class="mb-4">
+        <label class="form-label d-block">Preferred Pronouns</label>
+        <div class="d-flex flex-wrap gap-2">
+          <div class="form-check p-0 m-0">
+            <input class="form-check-input" type="checkbox" name="pronoun" value="he" id="pronoun_he">
+            <label class="pronoun-chip" for="pronoun_he">He/Him</label>
+          </div>
+          <div class="form-check p-0 m-0">
+            <input class="form-check-input" type="checkbox" name="pronoun" value="she" id="pronoun_she">
+            <label class="pronoun-chip" for="pronoun_she">She/Her</label>
+          </div>
+          <div class="form-check p-0 m-0">
+            <input class="form-check-input" type="checkbox" name="pronoun" value="they" id="pronoun_they">
+            <label class="pronoun-chip" for="pronoun_they">They/Them</label>
+          </div>
+          <div class="form-check p-0 m-0">
+            <input class="form-check-input" type="checkbox" name="pronoun" value="other" id="pronoun_other">
+            <label class="pronoun-chip" for="pronoun_other">Other</label>
+          </div>
+        </div>
+      </div>
+
+      <div class="mb-4 form-check d-flex align-items-center gap-2">
+        <input type="checkbox" name="tos_agree" value="1" id="tos_agree" class="form-check-input-custom" required>
+        <label class="form-check-label fs-7 text-muted" for="tos_agree" style="font-size: 0.8rem;">
+          I agree to the Terms & Conditions
+        </label>
+      </div>
+
+      <div class="d-grid pt-2">
+        <button type="submit" class="btn-primary-oria">Start My Journey</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="text-center">
+    <p class="text-muted small">Already have an account? <a href="{{ url_for('login') }}"
+        class="text-decoration-none fw-600" style="color: var(--accent-blue)">Log In</a></p>
+  </div>
+</main>
+{% endblock %}

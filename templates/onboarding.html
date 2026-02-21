@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block title %}Getting to know you - ORIA{% endblock %}
+
+{% block content %}
+<header class="nav_header text-center">
+    <h1>Welcome to ORIA!</h1>
+</header>
+
+<main class="container px-4 py-5">
+    <div class="glass-card mb-5">
+        <h2 class="text-center mb-4 fw-bold">Let's get to know you</h2>
+        <p class="text-muted text-center mb-4">Please answer 5 quick questions so we can personalize your experience.
+        </p>
+
+        <form action="{{ url_for('onboarding') }}" method="post" class="form">
+            <div class="mb-4">
+                <label for="q1" class="form-label">1. Розкажіть трохи про себе?</label>
+                <input type="text" name="q1" id="q1" placeholder="Ваша відповідь..." class="form-control" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="q2" class="form-label">2. Які ваші головні цілі?</label>
+                <input type="text" name="q2" id="q2" placeholder="Ваша відповідь..." class="form-control" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="q3" class="form-label">3. Яке ваше улюблене хобі?</label>
+                <input type="text" name="q3" id="q3" placeholder="Ваша відповідь..." class="form-control" required>
+            </div>
+
+            <div class="mb-4">
+                <label for="q4" class="form-label">4. В який час доби ви найбільш продуктивні?</label>
+                <select name="q4" id="q4" class="form-control" required>
+                    <option value="" disabled selected>Оберіть варіант</option>
+                    <option value="morning">Ранок</option>
+                    <option value="afternoon">День</option>
+                    <option value="evening">Вечір</option>
+                    <option value="night">Ніч</option>
+                </select>
+            </div>
+
+            <div class="mb-4">
+                <label for="q5" class="form-label">5. Чи є ще щось, що ми маємо знати?</label>
+                <input type="text" name="q5" id="q5" placeholder="Ваша відповідь..." class="form-control" required>
+            </div>
+
+            <div class="d-grid pt-2">
+                <button type="submit" class="btn-primary-oria">Продовжити до Головної</button>
+            </div>
+        </form>
+    </div>
+</main>
+{% endblock %}

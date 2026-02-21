@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block title %}Log In - ORIA{% endblock %}
+
+{% block content %}
+<header class="nav_header text-center">
+    <h1>ORIA</h1>
+</header>
+
+<main class="container px-4 py-5">
+    <div class="d-flex justify-content-end mb-3">
+        <a href="{{ url_for('register') }}" class="btn btn-outline-primary btn-sm rounded-pill px-3 fw-bold"
+            style="border-color: var(--accent-blue); color: var(--accent-blue);">Sign Up</a>
+    </div>
+
+    <div class="glass-card mb-5">
+        <h2 class="text-center mb-4 fw-bold">Welcome Back</h2>
+
+        <form action="{{ url_for('login') }}" method="post" class="form">
+            <div class="mb-4">
+                <label for="field_email" class="form-label">Email Address</label>
+                <input type="email" name="e-mail" id="field_email" placeholder="hello@example.com" class="form-control"
+                    required>
+            </div>
+
+            <div class="mb-4">
+                <label for="field_password" class="form-label">Password</label>
+                <input type="password" name="password" id="field_password" placeholder="••••••••" class="form-control"
+                    required>
+            </div>
+
+            <div class="d-grid pt-2">
+                <button type="submit" class="btn-primary-oria">Log In</button>
+            </div>
+        </form>
+    </div>
+
+    <div class="text-center">
+        <p class="text-muted small">Don't have an account? <a href="{{ url_for('register') }}"
+                class="text-decoration-none fw-600" style="color: var(--accent-blue)">Sign Up</a></p>
+    </div>
+</main>
+{% endblock %}

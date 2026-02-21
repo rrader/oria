@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Home - ORIA{% endblock %}
+
+{% block content %}
+<header class="nav_header d-flex justify-content-between align-items-center">
+    <h1>ORIA</h1>
+    <a href="{{ url_for('logout') }}" class="btn-outline-oria" style="padding: 6px 16px; font-size: 0.85rem;">Log
+        Out</a>
+</header>
+
+<main class="container px-4 py-3 text-center flex-grow-1">
+    <div class="mb-2">
+        <img src="{{ url_for('static', filename='img/IMG_8442.PNG') }}" alt="ORIA Mascot" class="mascot-home"
+            id="oria-mascot">
+        <h2 class="fw-bold mb-2">Welcome, {{ user.username }}!</h2>
+        <p class="text-muted">Your journey with ORIA begins here. We've prepared something special for you.</p>
+    </div>
+
+    <div class="glass-card text-start mb-4">
+        <div class="d-flex align-items-center gap-3 mb-3">
+            <div
+                style="width: 48px; height: 48px; background: var(--accent-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M12 20h9" />
+                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+            </div>
+            <div>
+                <h6 class="mb-0 fw-bold">First Note</h6>
+                <small class="text-muted">Tap to start writing...</small>
+            </div>
+        </div>
+        <div class="p-3 bg-light rounded-3" style="border: 1px dashed #ced4da;">
+            <p class="mb-0 text-muted small italic">Your future content for {{ user.username }} will appear here.</p>
+        </div>
+    </div>
+</main>
+
+<nav class="bottom-nav">
+    <a href="#" class="nav-item active">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+            <polyline points="9 22 9 12 15 12 15 22" />
+        </svg>
+        <span>Home</span>
+    </a>
+    <a href="#" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 20h9" />
+            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
+        </svg>
+        <span>Notes</span>
+    </a>
+    <a href="#" class="nav-item">
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+        </svg>
+        <span>Profile</span>
+    </a>
+</nav>
+{% endblock %}
