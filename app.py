@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, session, j
 from flask_sqlalchemy import SQLAlchemy
 import os
 import json
+import datetime
+import random
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -30,6 +32,8 @@ class User(db.Model):
     quests = db.Column(db.Text, default='[]')
     owned_skins = db.Column(db.Text, default='["default"]')
     equipped_skin = db.Column(db.String(50), default='default')
+    daily_quests = db.Column(db.Text, default='[]')
+    last_daily_date = db.Column(db.String(20), default='')
 
     def __init__(self, username, email, password, pronouns=""):
         self.username = username
@@ -43,6 +47,8 @@ class User(db.Model):
         self.quests = '[]'
         self.owned_skins = '["default"]'
         self.equipped_skin = 'default'
+        self.daily_quests = '[]'
+        self.last_daily_date = ''
 
     def get_chat_history(self):
         try:
@@ -61,6 +67,15 @@ class User(db.Model):
 
     def set_quests(self, quests_list):
         self.quests = json.dumps(quests_list)
+
+    def get_daily_quests(self):
+        try:
+            return json.loads(self.daily_quests)
+        except Exception:
+            return []
+
+    def set_daily_quests(self, daily_list):
+        self.daily_quests = json.dumps(daily_list)
 
     def get_owned_skins(self):
         try:
@@ -179,11 +194,53 @@ def get_user_state():
     if not user:
         return jsonify({'error': 'User not found'}), 404
         
+    today_str = datetime.date.today().isoformat()
+    if user.last_daily_date != today_str:
+        # Generate new daily quests!
+        static_tasks_pool = [
+            "Выпить стакан воды утром",
+            "Сделать разминку 5 минут",
+            "Проветрить комнату",
+            "Прочитать 10 страниц книги",
+            "Выйти на прогулку на 15 минут",
+            "Записать три благодарности за день"
+        ]
+        chosen_static = random.sample(static_tasks_pool, 2)
+        
+        daily_quests = [
+            {"id": "daily_1", "task": chosen_static[0], "completed": False, "xp_reward": 20},
+            {"id": "daily_2", "task": chosen_static[1], "completed": False, "xp_reward": 20}
+        ]
+
+        # Call AI for the 3rd task
+        try:
+            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+            response = client.chat.completions.create(
+                model="gpt-4o-mini",
+                messages=[
+                    {"role": "system", "content": f'You are ORIA, a Cyberpunk System Guide. Here are two daily tasks the user already has: "{chosen_static[0]}" and "{chosen_static[1]}". Generate a 3rd unique, very simple daily lifestyle/wellbeing task (e.g., text an old friend, look at the sky) in the EXACT SAME LANGUAGE (Russian/Ukrainian). Return ONLY a valid JSON object: {{"task": "Task name here", "completed": false, "xp_reward": 20}}'}
+                ],
+                temperature=0.7
+            )
+            ai_data = json.loads(response.choices[0].message.content.strip("```json\n "))
+            ai_data["id"] = "daily_3"
+            if "completed" not in ai_data: ai_data["completed"] = False
+            if "xp_reward" not in ai_data: ai_data["xp_reward"] = 20
+            daily_quests.append(ai_data)
+        except Exception as e:
+            print(f"Error generating AI daily task: {e}")
+            daily_quests.append({"id": "daily_3", "task": "Улыбнуться своему отражению", "completed": False, "xp_reward": 20})
+
+        user.set_daily_quests(daily_quests)
+        user.last_daily_date = today_str
+        db.session.commit()
+
     return jsonify({
         'level': user.level,
         'xp': user.xp,
         'coins': user.coins,
         'quests': user.get_quests(),
+        'daily_quests': user.get_daily_quests(),
         'owned_skins': user.get_owned_skins(),
         'equipped_skin': user.equipped_skin
     })

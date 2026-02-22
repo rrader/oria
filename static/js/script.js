@@ -87,6 +87,7 @@ window.OriaState = {
     xp: 0,
     coins: 0,
     quests: [],
+    daily_quests: [],
     owned_skins: ["default"],
     equipped_skin: "default"
 };
@@ -99,6 +100,7 @@ function initGamification() {
                 window.OriaState = data;
                 updateDOMState();
                 renderQuests();
+                if (window.renderDailyQuests) window.renderDailyQuests();
                 if (window.renderStore) window.renderStore();
                 if (window.renderProfileQuests) window.renderProfileQuests();
 
@@ -212,6 +214,82 @@ function renderQuests() {
 
     if (activeQuestsCount === 0 && noQuestsMsg) {
         container.appendChild(noQuestsMsg);
+    }
+}
+
+window.renderDailyQuests = function () {
+    const container = document.getElementById('daily-quests-container');
+    if (!container) return;
+
+    container.innerHTML = '';
+    const dailyQuests = window.OriaState.daily_quests || [];
+
+    if (dailyQuests.length === 0) {
+        container.innerHTML = '<p class="text-muted small text-center my-2">No daily quests generated yet.</p>';
+        return;
+    }
+
+    dailyQuests.forEach((quest, index) => {
+        const item = document.createElement('div');
+        item.className = `daily-quest-item d-flex align-items-center p-2 rounded-3 border ${quest.completed ? 'completed-daily' : ''}`;
+        item.style.backgroundColor = quest.completed ? '#f8f9fa' : '#fff';
+        item.style.transition = 'all 0.3s ease';
+
+        // Define checkbox check
+        const isChecked = quest.completed ? 'checked disabled' : '';
+
+        item.innerHTML = `
+            <div class="form-check m-0 p-0 d-flex align-items-center w-100" style="cursor: ${quest.completed ? 'default' : 'pointer'};">
+                <input class="form-check-input me-3" type="checkbox" value="" id="dailyCheck_${quest.id}" style="width: 1.25em; height: 1.25em; cursor: pointer; flex-shrink: 0;" ${isChecked}>
+                <label class="form-check-label flex-grow-1 daily-task-label ${quest.completed ? 'text-decoration-line-through text-muted' : 'fw-semibold text-dark'}" 
+                       for="dailyCheck_${quest.id}" 
+                       style="cursor: ${quest.completed ? 'default' : 'pointer'}; font-size: 0.95rem; user-select: none;">
+                    ${quest.task}
+                </label>
+                <span class="badge rounded-pill ms-2" style="background: var(--accent-blue); font-size: 0.75rem;">+${quest.xp_reward} XP</span>
+            </div>
+        `;
+
+        if (!quest.completed) {
+            item.addEventListener('click', (e) => {
+                // Prevent double clicking if already processing
+                if (item.classList.contains('processing-complete')) return;
+
+                // Allow clicking the label/container to toggle checkbox visually immediately
+                const checkbox = item.querySelector('input');
+                if (e.target.tagName !== 'INPUT') {
+                    checkbox.checked = !checkbox.checked;
+                }
+
+                if (checkbox.checked) {
+                    item.classList.add('processing-complete');
+                    completeDailyQuest(quest.id, item);
+                }
+            });
+        }
+
+        container.appendChild(item);
+    });
+};
+
+function completeDailyQuest(questId, itemElement) {
+    const dailyQuests = window.OriaState.daily_quests;
+    const questIndex = dailyQuests.findIndex(q => q.id === questId);
+
+    if (questIndex > -1 && !dailyQuests[questIndex].completed) {
+        // Visual Animation First
+        const label = itemElement.querySelector('.daily-task-label');
+        itemElement.style.backgroundColor = '#f8f9fa';
+        label.classList.remove('text-dark', 'fw-semibold');
+        label.classList.add('text-muted', 'text-decoration-line-through');
+
+        // Wait briefly for the CSS transition, then award XP and save
+        setTimeout(() => {
+            dailyQuests[questIndex].completed = true;
+            addXP(dailyQuests[questIndex].xp_reward);
+            // Re-render to freeze states securely
+            window.renderDailyQuests();
+        }, 400);
     }
 }
 
