@@ -566,4 +566,4 @@ def api_store_equip():
     return jsonify({'success': True, 'equipped_skin': skin_id})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)
