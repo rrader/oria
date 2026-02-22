@@ -9,37 +9,118 @@
         Out</a>
 </header>
 
-<main class="container px-4 py-3 text-center flex-grow-1">
-    <div class="mb-2">
-        <img src="{{ url_for('static', filename='img/IMG_8442.PNG') }}" alt="ORIA Mascot" class="mascot-home"
-            id="oria-mascot">
-        <h2 class="fw-bold mb-2">Welcome, {{ user.username }}!</h2>
-        <p class="text-muted">Your journey with ORIA begins here. We've prepared something special for you.</p>
-    </div>
+<main class="container px-4 py-3 text-center flex-grow-1 d-flex flex-column" style="overflow-y: hidden;">
+    <!-- DASHBOARD VIEW -->
+    <div id="dashboard-view" class="flex-grow-1" style="overflow-y: auto;">
+        <!-- Gamification State Display -->
+        <div class="gamification-status mb-3 d-flex justify-content-center align-items-center gap-3">
+            <span class="badge bg-primary rounded-pill px-3 py-2 shadow-sm"
+                style="font-size: 0.9rem; background: var(--primary-gradient) !important;">
+                Level <span id="user-level">{{ user.level }}</span>
+            </span>
+            <span class="badge bg-light text-dark rounded-pill px-3 py-2 shadow-sm border" style="font-size: 0.9rem;">
+                🪙 <span id="user-coins">{{ user.coins }}</span> Coins
+            </span>
+        </div>
 
-    <div class="glass-card text-start mb-4">
-        <div class="d-flex align-items-center gap-3 mb-3">
-            <div
-                style="width: 48px; height: 48px; background: var(--accent-blue); border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-                    stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 20h9" />
-                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-                </svg>
-            </div>
-            <div>
-                <h6 class="mb-0 fw-bold">First Note</h6>
-                <small class="text-muted">Tap to start writing...</small>
+        <!-- XP Progress Bar -->
+        <div class="progress mb-4 mx-auto"
+            style="height: 10px; max-width: 300px; border-radius: 10px; background: rgba(0,0,0,0.05); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+            <div id="user-xp-bar" class="progress-bar" role="progressbar"
+                style="width: {{ user.xp }}%; background: var(--accent-pink);" aria-valuenow="{{ user.xp }}"
+                aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+
+        <div class="mb-2">
+            <img src="{{ url_for('static', filename='img/IMG_8442.PNG') }}" alt="ORIA Mascot" class="mascot-home"
+                id="oria-mascot">
+            <h2 class="fw-bold mb-2">Welcome, {{ user.username }}!</h2>
+        </div>
+
+        <!-- Quick Quest Input -->
+        <div class="quick-quest-container mb-4 mx-auto" style="max-width: 400px;">
+            <div class="glass-search p-2 rounded-pill d-flex align-items-center"
+                style="background: rgba(255,255,255,0.7); border: 1px solid var(--glass-border); box-shadow: var(--shadow);">
+                <input type="text" id="quick-quest-input" class="form-control border-0 bg-transparent shadow-none"
+                    placeholder="Enter a quick goal (e.g. Prepare for exam)">
+                <button id="btn-quick-quest" class="btn btn-primary-oria rounded-pill px-4 ms-2 py-2"
+                    style="white-space: nowrap;">Quest!</button>
             </div>
         </div>
-        <div class="p-3 bg-light rounded-3" style="border: 1px dashed #ced4da;">
-            <p class="mb-0 text-muted small italic">Your future content for {{ user.username }} will appear here.</p>
+
+        <!-- Main Quests Container -->
+        <div class="glass-card text-start mb-4 p-4">
+            <h5 class="fw-bold mb-3 d-flex align-items-center" style="color: var(--text-main);">
+                <svg class="me-2 text-primary" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <path d="M12 2v20"></path>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+                Active Quests
+            </h5>
+            <div id="quests-container" class="d-flex flex-column gap-3">
+                <!-- Quests injected by JS -->
+                <p class="text-muted small text-center my-3" id="no-quests-msg">No quests yet. Ask ORIA or use Quick
+                    Quest!
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- PROFILE VIEW -->
+    <div id="profile-view" class="d-none flex-grow-1 text-start" style="overflow-y: auto; padding-bottom: 20px;">
+        <h2 class="fw-bold mb-4 text-center mt-2">{{ user.username }}'s Profile</h2>
+
+        <!-- Stats Card -->
+        <div class="glass-card p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="fs-5 fw-bold text-primary">Level <span id="profile-level">{{ user.level }}</span></span>
+                <span
+                    class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-2 fs-6 shadow-sm border border-warning">🪙
+                    <span id="profile-coins">{{ user.coins }}</span></span>
+            </div>
+            <div class="progress" style="height: 12px; border-radius: 10px; background: rgba(0,0,0,0.05);">
+                <div id="profile-xp-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                    role="progressbar" style="width: {{ user.xp }}%; background: var(--accent-pink);"></div>
+            </div>
+            <div class="text-end mt-1 small text-muted fw-bold"><span id="profile-xp-text">{{ user.xp }}</span>/100 XP
+            </div>
+        </div>
+
+        <!-- Mascot Store -->
+        <h4 class="fw-bold mt-4 mb-3 d-flex align-items-center">
+            <svg class="me-2" style="color: var(--accent-pink);" xmlns="http://www.w3.org/2000/svg" width="24"
+                height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="8" cy="21" r="1" />
+                <circle cx="19" cy="21" r="1" />
+                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+            </svg>
+            Mascot Store
+        </h4>
+        <div id="store-grid" class="store-grid-container mb-4">
+            <!-- Store items injected by JS -->
+        </div>
+
+        <!-- Completed Quests Archive -->
+        <h4 class="fw-bold mt-4 mb-3 d-flex align-items-center">
+            <svg class="me-2 text-success" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                <polyline points="22 4 12 14.01 9 11.01" />
+            </svg>
+            Completed Quests
+        </h4>
+        <div id="completed-quests-container" class="d-flex flex-column gap-3">
+            <p class="text-muted small text-center my-3 fw-bold" id="no-completed-quests-msg">No completed quests yet.
+            </p>
         </div>
     </div>
 </main>
 
 <nav class="bottom-nav">
-    <a href="#" class="nav-item active">
+    <a href="#" class="nav-item active" id="nav-btn-home" onclick="showDashboard(event)">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
@@ -47,21 +128,119 @@
         </svg>
         <span>Home</span>
     </a>
-    <a href="#" class="nav-item">
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
-            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M12 20h9" />
-            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
-        </svg>
-        <span>Notes</span>
+    <a href="#" class="nav-item" data-bs-toggle="offcanvas" data-bs-target="#chatOffcanvas">
+        <div class="floating-btn"></div>
     </a>
-    <a href="#" class="nav-item">
+    <a href="#" class="nav-item" id="nav-btn-profile" onclick="showProfile(event)">
         <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
             <circle cx="12" cy="7" r="4" />
         </svg>
-        <span>Profile</span>
+        <span>Profile & Store</span>
     </a>
 </nav>
+
+<!-- AI Chat Offcanvas -->
+<div class="offcanvas offcanvas-bottom chat-offcanvas" tabindex="-1" id="chatOffcanvas"
+    aria-labelledby="chatOffcanvasLabel"
+    style="height: 85vh; border-top-left-radius: 24px; border-top-right-radius: 24px; box-shadow: 0 -10px 40px rgba(0,0,0,0.1);">
+    <div class="offcanvas-header border-bottom shadow-sm pb-3 pt-4 px-4">
+        <h5 class="offcanvas-title fw-bold d-flex align-items-center gap-2" id="chatOffcanvasLabel">
+            <span
+                style="display:inline-block; width:10px; height:10px; background:var(--accent-pink); border-radius:50%; box-shadow: 0 0 10px var(--accent-pink);"></span>
+            ORIA Cyber-Link
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    </div>
+    <div class="offcanvas-body chat-body d-flex flex-column px-4 py-3 bg-light">
+        <div id="chat-messages" class="flex-grow-1 overflow-auto d-flex flex-column gap-3 pb-3 pe-2 chat-scroll">
+            <!-- Chat bubbles appear here -->
+            <div class="chat-bubble ai p-3 rounded-4 shadow-sm"
+                style="background: white; border-bottom-left-radius: 4px; max-width: 85%;">
+                Terminal connected. Ready when you are, user.
+            </div>
+        </div>
+
+        <!-- Loading typing indicator -->
+        <div id="chat-typing" class="d-none ms-2 mb-3 text-muted small">
+            <span class="spinner-grow spinner-grow-sm text-primary" role="status" aria-hidden="true"></span>
+            ORIA is processing...
+        </div>
+
+        <div class="chat-input-area mt-auto pt-2 bg-light">
+            <div class="input-group drop-shadow rounded-pill overflow-hidden shadow-sm"
+                style="background: white; border: 1px solid #eee;">
+                <input type="text" id="chat-input-text"
+                    class="form-control border-0 px-4 py-3 shadow-none bg-transparent" placeholder="Message ORIA...">
+                <button class="btn border-0 text-white px-4" id="btn-send-chat"
+                    style="background: var(--primary-gradient);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="22" y1="2" x2="11" y2="13"></line>
+                        <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quest Chain Details Modal -->
+<div class="modal fade" id="questChainModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content glass-card border-0 pb-3">
+            <div class="modal-header border-0 pb-0 px-4 pt-4">
+                <h4 class="modal-title fw-bold border-bottom pb-2 w-100" id="questModalTitle">Quest Details</h4>
+                <button type="button" class="btn-close position-absolute top-0 end-0 m-4" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
+            </div>
+            <div class="modal-body px-4 pt-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 bg-light p-3 rounded-4">
+                    <div>
+                        <span class="badge" id="questModalDifficulty"
+                            style="background: var(--accent-blue);">Medium</span>
+                        <span class="small text-muted ms-2 fw-bold" id="questProgressText">0% Completed</span>
+                    </div>
+                    <div class="progress flex-grow-1 ms-3" style="height: 10px; border-radius: 5px;">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" id="questModalProgress"
+                            role="progressbar" style="width: 0%; background: var(--accent-blue);"></div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-3 text-muted">Sub-Quest Chain Line</h6>
+                <div class="quest-chain-container position-relative ps-3" id="questChainList">
+                    <!-- Visual chain items injected here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- Level Up Modal -->
+<div class="modal fade" id="levelUpModal" tabindex="-1" aria-hidden="true" style="z-index: 1060;">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 level-up-modal-content">
+            <div class="modal-body text-center p-5">
+                <div class="level-up-icon-wrapper mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        class="level-up-icon">
+                        <polygon
+                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+                        </polygon>
+                    </svg>
+                </div>
+                <h2 class="fw-bold mb-3 level-up-title text-white">LEVEL UP!</h2>
+                <p class="text-white opacity-75 mb-4">You have successfully reached a new milestone.</p>
+                <div class="new-level-badge mb-4">
+                    Level <span id="newLevelText" class="fw-bold fs-1">2</span>
+                </div>
+                <button type="button" class="btn btn-light rounded-pill px-5 py-2 fw-bold text-primary shadow-sm"
+                    data-bs-dismiss="modal">
+                    Continue Journey
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}

@@ -1,2 +1,4 @@
-flask
-flask-sqlalchemy
+Flask
+Flask-SQLAlchemy
+openai
+python-dotenv
