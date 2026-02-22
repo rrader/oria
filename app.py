@@ -186,6 +186,61 @@ def logout():
 
 # --- API ROUTES --- #
 
+def _generate_daily_quests(user):
+    today_str = datetime.date.today().isoformat()
+    active_quests = [q for q in user.get_quests() if q.get('status') != 'completed']
+    all_incomplete_subtasks = []
+    for quest in active_quests:
+        for sub_task in quest.get('sub_tasks', []):
+            if not sub_task.get('completed', False):
+                all_incomplete_subtasks.append(sub_task.get('task', 'Unknown Task'))
+
+    # Fallback pool if the user has no active quests
+    static_tasks_pool = [
+        "drink water",
+        "do a 5 minute warm-up",
+        "air out the room",
+        "read 10 pages of a book",
+        "go for a 15 minute walk",
+        "write down three things you're grateful for today"
+    ]
+
+    # Try to pick 2 tasks from actual active quests, otherwise fallback to static
+    if len(all_incomplete_subtasks) >= 2:
+        chosen_tasks = random.sample(all_incomplete_subtasks, 2)
+    elif len(all_incomplete_subtasks) == 1:
+        chosen_tasks = [all_incomplete_subtasks[0], random.choice(static_tasks_pool)]
+    else:
+        chosen_tasks = random.sample(static_tasks_pool, 2)
+    
+    daily_quests = [
+        {"id": "daily_1", "task": chosen_tasks[0], "completed": False, "xp_reward": 20},
+        {"id": "daily_2", "task": chosen_tasks[1], "completed": False, "xp_reward": 20}
+    ]
+
+    # Call AI for the 3rd task
+    try:
+        client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": f'You are ORIA, a Cyberpunk System Guide. Here are two daily tasks the user already has: "{chosen_tasks[0]}" and "{chosen_tasks[1]}". Generate a 3rd unique, very simple daily physical/mental wellbeing task (e.g., "do a 2-minute eye rest exercise", "stretch your neck and shoulders", "do 10 squats"). The new task MUST BE WRITTEN IN ENGLISH. Return ONLY a valid JSON object: {{"task": "Task name here", "completed": false, "xp_reward": 20}}'}
+            ],
+            temperature=0.7
+        )
+        ai_data = json.loads(response.choices[0].message.content.strip("```json\n "))
+        ai_data["id"] = "daily_3"
+        if "completed" not in ai_data: ai_data["completed"] = False
+        if "xp_reward" not in ai_data: ai_data["xp_reward"] = 20
+        daily_quests.append(ai_data)
+    except Exception as e:
+        print(f"Error generating AI daily task: {e}")
+        daily_quests.append({"id": "daily_3", "task": "Smile at your reflection", "completed": False, "xp_reward": 20})
+
+    user.set_daily_quests(daily_quests)
+    user.last_daily_date = today_str
+    db.session.commit()
+
 @app.route('/api/user/state', methods=['GET'])
 def get_user_state():
     if 'user_id' not in session:
@@ -196,44 +251,7 @@ def get_user_state():
         
     today_str = datetime.date.today().isoformat()
     if user.last_daily_date != today_str:
-        # Generate new daily quests!
-        static_tasks_pool = [
-            "Выпить стакан воды утром",
-            "Сделать разминку 5 минут",
-            "Проветрить комнату",
-            "Прочитать 10 страниц книги",
-            "Выйти на прогулку на 15 минут",
-            "Записать три благодарности за день"
-        ]
-        chosen_static = random.sample(static_tasks_pool, 2)
-        
-        daily_quests = [
-            {"id": "daily_1", "task": chosen_static[0], "completed": False, "xp_reward": 20},
-            {"id": "daily_2", "task": chosen_static[1], "completed": False, "xp_reward": 20}
-        ]
-
-        # Call AI for the 3rd task
-        try:
-            client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-            response = client.chat.completions.create(
-                model="gpt-4o-mini",
-                messages=[
-                    {"role": "system", "content": f'You are ORIA, a Cyberpunk System Guide. Here are two daily tasks the user already has: "{chosen_static[0]}" and "{chosen_static[1]}". Generate a 3rd unique, very simple daily lifestyle/wellbeing task (e.g., text an old friend, look at the sky) in the EXACT SAME LANGUAGE (Russian/Ukrainian). Return ONLY a valid JSON object: {{"task": "Task name here", "completed": false, "xp_reward": 20}}'}
-                ],
-                temperature=0.7
-            )
-            ai_data = json.loads(response.choices[0].message.content.strip("```json\n "))
-            ai_data["id"] = "daily_3"
-            if "completed" not in ai_data: ai_data["completed"] = False
-            if "xp_reward" not in ai_data: ai_data["xp_reward"] = 20
-            daily_quests.append(ai_data)
-        except Exception as e:
-            print(f"Error generating AI daily task: {e}")
-            daily_quests.append({"id": "daily_3", "task": "Улыбнуться своему отражению", "completed": False, "xp_reward": 20})
-
-        user.set_daily_quests(daily_quests)
-        user.last_daily_date = today_str
-        db.session.commit()
+        _generate_daily_quests(user)
 
     return jsonify({
         'level': user.level,
@@ -243,6 +261,21 @@ def get_user_state():
         'daily_quests': user.get_daily_quests(),
         'owned_skins': user.get_owned_skins(),
         'equipped_skin': user.equipped_skin
+    })
+
+@app.route('/api/user/daily_refresh', methods=['POST'])
+def refresh_daily_quests():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+    user = db.session.get(User, session['user_id'])
+    if not user:
+        return jsonify({'error': 'User not found'}), 404
+    
+    _generate_daily_quests(user)
+    
+    return jsonify({
+        'success': True,
+        'daily_quests': user.get_daily_quests()
     })
 
 @app.route('/api/user/update', methods=['POST'])
@@ -290,8 +323,8 @@ def api_chat():
     system_prompt = {
         "role": "system",
         "content": (
-            "You are ORIA, a Cyberpunk System Guide and Productivity Assistant. "
-            "You are an AI connected to the user's neural link, helping them level up in real life. "
+            "You are ORIA, a opossum and Productivity Assistant and girl. "
+            "You are an AI connected to the user's chat, helping them level up in real life. "
             "You act slightly edgy but deeply supportive, breaking tasks into actionable step-by-step quests. "
             "Your persona should shine through in every response. "
             "IMPORTANT: If the user asks you to create a quest, or if you suggest a quest and the user agrees, "
@@ -569,36 +602,34 @@ def api_quiz_explain():
         print(f"OpenAI Error: {e}")
         return jsonify({'error': str(e)}), 500
 
-@app.route('/api/store/buy', methods=['POST'])
-def api_store_buy():
+@app.route('/api/store/roulette', methods=['POST'])
+def api_store_roulette():
     if 'user_id' not in session:
         return jsonify({'error': 'Unauthorized'}), 401
     user = db.session.get(User, session['user_id'])
     if not user:
         return jsonify({'error': 'User not found'}), 404
         
-    data = request.json
-    if not data or 'skin_id' not in data or 'price' not in data:
-        return jsonify({'error': 'Invalid payload'}), 400
-        
-    skin_id = data['skin_id']
-    price = int(data['price'])
+    ROULETTE_COST = 100
+    UNLOCKABLE_SKINS = ['skin_1', 'skin_2', 'skin_3', 'skin_4', 'skin_5', 'skin_6']
     
-    owned_skins = user.get_owned_skins()
-    
-    if skin_id in owned_skins:
-        return jsonify({'error': 'Skin already owned'}), 400
-        
-    if user.coins < price:
+    if user.coins < ROULETTE_COST:
         return jsonify({'error': 'Not enough coins'}), 400
         
-    user.coins -= price
-    owned_skins.append(skin_id)
+    owned_skins = user.get_owned_skins()
+    locked_skins = [s for s in UNLOCKABLE_SKINS if s not in owned_skins]
+    
+    if not locked_skins:
+        return jsonify({'error': 'All currently available skins are already unlocked!'}), 400
+        
+    user.coins -= ROULETTE_COST
+    chosen_skin = random.choice(locked_skins)
+    owned_skins.append(chosen_skin)
     user.set_owned_skins(owned_skins)
-    user.equipped_skin = skin_id
+    # The default behavior of a gacha is usually just to unlock it, but not automatically equip it. Let's keep it just unlocked.
     
     db.session.commit()
-    return jsonify({'success': True, 'coins': user.coins, 'equipped_skin': skin_id})
+    return jsonify({'success': True, 'coins': user.coins, 'unlocked_skin': chosen_skin})
 
 @app.route('/api/store/equip', methods=['POST'])
 def api_store_equip():

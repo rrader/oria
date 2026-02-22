@@ -183,6 +183,32 @@ body {
   }
 }
 
+@keyframes rock {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  25% {
+    transform: rotate(-10deg);
+  }
+
+  50% {
+    transform: rotate(0deg);
+  }
+
+  75% {
+    transform: rotate(10deg);
+  }
+
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+.rocking-animation {
+  animation: rock 0.4s ease-in-out !important;
+}
+
 /* PWA Bottom Navigation (Simulated) */
 .bottom-nav {
   display: flex;
@@ -196,6 +222,7 @@ body {
 }
 
 .nav-item {
+  flex: 1;
   color: var(--text-muted);
   text-decoration: none;
   font-size: 0.75rem;
@@ -305,6 +332,7 @@ body {
   border-radius: var(--radius-md);
   padding: 16px;
   border: 1px solid #f0f0f0;
+  border-left: 4px solid var(--accent-blue);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   cursor: pointer;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -314,6 +342,17 @@ body {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
   border-color: var(--accent-blue);
+}
+
+.daily-quest-item {
+  border: 1px solid #f0f0f0;
+  border-left: 4px solid var(--accent-pink) !important;
+  background-color: #fff;
+}
+
+.daily-quest-item.completed-daily {
+  border-left-color: #ccc !important;
+  background-color: #f8f9fa !important;
 }
 
 /* Chat Styles */

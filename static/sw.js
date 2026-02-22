@@ -1,4 +1,4 @@
-const CACHE_NAME = 'oria-cache-v1';
+const CACHE_NAME = 'oria-cache-v12';
 const urlsToCache = [
     '/',
     '/static/css/style.css',

@@ -3,33 +3,38 @@
 {% block title %}Home - ORIA{% endblock %}
 
 {% block content %}
-<header class="nav_header d-flex justify-content-between align-items-center">
-    <h1>ORIA</h1>
-    <a href="{{ url_for('logout') }}" class="btn-outline-oria" style="padding: 6px 16px; font-size: 0.85rem;">Log
-        Out</a>
+<header class="nav_header d-flex flex-column" style="padding-bottom: 5px;">
+    <div class="d-flex justify-content-between align-items-center w-100 mb-2">
+        <h1 class="mb-0">ORIA</h1>
+        <a href="{{ url_for('logout') }}" class="btn-outline-oria" style="padding: 6px 16px; font-size: 0.85rem;">Log
+            Out</a>
+    </div>
+
+    <!-- Pinned Gamification Stats (Visible only on Dashboard) -->
+    <div id="header-gamification-stats" class="w-100 d-flex flex-column align-items-center mt-1 transition-all">
+        <div class="gamification-status mb-2 d-flex justify-content-center align-items-center gap-3">
+            <span class="badge bg-primary rounded-pill px-3 py-1 shadow-sm"
+                style="font-size: 0.85rem; background: var(--primary-gradient) !important;">
+                Level <span id="user-level">{{ user.level }}</span>
+            </span>
+            <span class="badge bg-light text-dark rounded-pill px-3 py-1 shadow-sm border" style="font-size: 0.85rem;">
+                <img src="/static/img/star-icon.svg" width="16" height="16" alt="Star"
+                    style="vertical-align: middle; margin-top: -2px;"> <span id="user-coins">{{ user.coins }}</span>
+                Coins
+            </span>
+        </div>
+        <div class="progress mb-1 mx-auto w-100"
+            style="height: 8px; max-width: 300px; border-radius: 10px; background: rgba(0,0,0,0.05); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
+            <div id="user-xp-bar" class="progress-bar" role="progressbar"
+                style="width: {{ user.xp }}%; background: var(--accent-pink);" aria-valuenow="{{ user.xp }}"
+                aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+    </div>
 </header>
 
 <main class="container px-4 py-3 text-center flex-grow-1 d-flex flex-column" style="min-height: 0;">
     <!-- DASHBOARD VIEW -->
     <div id="dashboard-view" class="flex-grow-1" style="min-height: 0;">
-        <!-- Gamification State Display -->
-        <div class="gamification-status mb-3 d-flex justify-content-center align-items-center gap-3">
-            <span class="badge bg-primary rounded-pill px-3 py-2 shadow-sm"
-                style="font-size: 0.9rem; background: var(--primary-gradient) !important;">
-                Level <span id="user-level">{{ user.level }}</span>
-            </span>
-            <span class="badge bg-light text-dark rounded-pill px-3 py-2 shadow-sm border" style="font-size: 0.9rem;">
-                🪙 <span id="user-coins">{{ user.coins }}</span> Coins
-            </span>
-        </div>
-
-        <!-- XP Progress Bar -->
-        <div class="progress mb-2 mx-auto"
-            style="height: 10px; max-width: 300px; border-radius: 10px; background: rgba(0,0,0,0.05); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
-            <div id="user-xp-bar" class="progress-bar" role="progressbar"
-                style="width: {{ user.xp }}%; background: var(--accent-pink);" aria-valuenow="{{ user.xp }}"
-                aria-valuemin="0" aria-valuemax="100"></div>
-        </div>
 
         <div class="mb-2 text-center" style="margin-top: 5px;">
             <img src="{{ url_for('static', filename='img/IMG_8442.PNG') }}" alt="ORIA Mascot" class="mascot-home"
@@ -42,7 +47,7 @@
             <div class="glass-search p-2 rounded-pill d-flex align-items-center"
                 style="background: rgba(255,255,255,0.7); border: 1px solid var(--glass-border); box-shadow: var(--shadow);">
                 <input type="text" id="quick-quest-input" class="form-control border-0 bg-transparent shadow-none"
-                    placeholder="Enter a quick goal (e.g. Prepare for exam)">
+                    placeholder="Enter a quick goal">
                 <button id="btn-quick-quest" class="btn btn-primary-oria rounded-pill px-4 ms-2 py-2"
                     style="white-space: nowrap;">Quest!</button>
             </div>
@@ -50,18 +55,45 @@
 
         <!-- Daily Quests Container -->
         <div class="glass-card text-start mb-4 p-4" style="border-left: 4px solid var(--accent-pink);">
-            <h5 class="fw-bold mb-3 d-flex align-items-center" style="color: var(--text-main);">
-                <svg class="me-2 text-warning" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polyline points="12 6 12 12 16 14"></polyline>
-                </svg>
-                Daily Quests
+            <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between"
+                style="color: var(--text-main); cursor: pointer;" data-bs-toggle="collapse"
+                data-bs-target="#dailyQuestsCollapseContainer" aria-expanded="true"
+                aria-controls="dailyQuestsCollapseContainer">
+                <span class="d-flex align-items-center">
+                    <svg class="me-2 text-warning" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Daily Quests
+                </span>
+                <span class="d-flex align-items-center">
+                    <button
+                        class="btn btn-sm btn-light rounded-circle shadow-sm me-2 d-flex align-items-center justify-content-center"
+                        id="refresh-daily-quests" title="Refresh Daily Tasks"
+                        style="width: 28px; height: 28px; padding: 0;" aria-label="Refresh daily tasks"
+                        onclick="event.stopPropagation(); window.refreshDailyQuests(this);">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
+                            class="text-secondary">
+                            <polyline points="23 4 23 10 17 10"></polyline>
+                            <polyline points="1 20 1 14 7 14"></polyline>
+                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
+                        </svg>
+                    </button>
+                    <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                </span>
             </h5>
-            <div id="daily-quests-container" class="d-flex flex-column gap-2 mt-2">
-                <!-- Daily quests injected by JS -->
-                <p class="text-muted small my-1">Loading daily tasks...</p>
+            <div class="collapse show" id="dailyQuestsCollapseContainer">
+                <div id="daily-quests-container" class="d-flex flex-column gap-2 mt-2">
+                    <!-- Daily quests injected by JS -->
+                    <p class="text-muted small my-1">Loading daily tasks...</p>
+                </div>
             </div>
         </div>
 
@@ -71,12 +103,8 @@
                 style="color: var(--text-main); cursor: pointer;" data-bs-toggle="collapse"
                 data-bs-target="#questsCollapseContainer" aria-expanded="false" aria-controls="questsCollapseContainer">
                 <span class="d-flex align-items-center">
-                    <svg class="me-2 text-primary" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M12 2v20"></path>
-                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                    </svg>
+                    <img src="/static/img/star-icon.svg" width="20" height="20" class="me-2" alt="Star"
+                        style="vertical-align: middle; margin-top: -3px;">
                     Active Quests
                 </span>
                 <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
@@ -104,7 +132,9 @@
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <span class="fs-5 fw-bold text-primary">Level <span id="profile-level">{{ user.level }}</span></span>
                 <span
-                    class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-2 fs-6 shadow-sm border border-warning">🪙
+                    class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-2 fs-6 shadow-sm border border-warning"><img
+                        src="/static/img/star-icon.svg" width="18" height="18" alt="Star"
+                        style="vertical-align: middle; margin-top: -3px;">
                     <span id="profile-coins">{{ user.coins }}</span></span>
             </div>
             <div class="progress" style="height: 12px; border-radius: 10px; background: rgba(0,0,0,0.05);">
@@ -115,19 +145,47 @@
             </div>
         </div>
 
-        <!-- Mascot Store -->
+        <!-- Skin Roulette -->
         <h4 class="fw-bold mt-4 mb-3 d-flex align-items-center">
             <svg class="me-2" style="color: var(--accent-pink);" xmlns="http://www.w3.org/2000/svg" width="24"
                 height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="8" cy="21" r="1" />
-                <circle cx="19" cy="21" r="1" />
-                <path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" />
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="m15.8 9.5-3.3-3.3"></path>
+                <path d="m9.5 8.2 3.3-3.3"></path>
+                <path d="m8.2 14.5-3.3 3.3"></path>
+                <path d="m14.5 15.8 3.3 3.3"></path>
+                <circle cx="12" cy="12" r="2"></circle>
             </svg>
-            Mascot Store
+            Skin Roulette
         </h4>
-        <div id="store-grid" class="store-grid-container mb-4">
-            <!-- Store items injected by JS -->
+        <div class="glass-card mb-4 p-4 text-center"
+            style="border: 2px solid var(--accent-blue); background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(230,240,255,0.9));">
+            <div id="roulette-window"
+                class="mx-auto overflow-hidden d-flex justify-content-center align-items-center bg-white shadow-sm mb-3"
+                style="width: 120px; height: 120px; border-radius: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.1) !important;">
+                <img src="/static/img/IMG_8435.PNG" id="roulette-display-img" alt="?"
+                    style="width: 100px; height: 100px; object-fit: contain; filter: brightness(0) invert(0.8);">
+            </div>
+            <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="btn-spin-roulette"
+                onclick="window.spinRoulette(100)">
+                SPIN (<img src="/static/img/star-icon.svg" width="18" height="18" alt="Star"
+                    style="vertical-align: middle; margin-top: -3px;"> 100)
+            </button>
+            <p id="roulette-msg" class="text-muted small mt-2 mb-0 fw-bold"></p>
+        </div>
+
+        <!-- My Skins Inventory -->
+        <h4 class="fw-bold mt-4 mb-3 d-flex align-items-center">
+            <svg class="me-2 text-warning" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
+                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            My Skins
+        </h4>
+        <div id="inventory-grid" class="store-grid-container mb-4">
+            <!-- Owned skins injected by JS -->
         </div>
 
         <!-- Completed Quests Archive -->
@@ -248,14 +306,9 @@
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 level-up-modal-content">
             <div class="modal-body text-center p-5">
-                <div class="level-up-icon-wrapper mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none"
-                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                        class="level-up-icon">
-                        <polygon
-                            points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
-                        </polygon>
-                    </svg>
+                <div class="level-up-icon-wrapper mb-4 d-flex justify-content-center">
+                    <img src="/static/img/IMG_8440.PNG" alt="Level Up Mascot"
+                        style="max-height: 140px; margin-left: 15px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2));">
                 </div>
                 <h2 class="fw-bold mb-3 level-up-title text-white">LEVEL UP!</h2>
                 <p class="text-white opacity-75 mb-4">You have successfully reached a new milestone.</p>

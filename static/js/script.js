@@ -19,7 +19,14 @@ class OriaMascot {
     }
 
     setFrame(type) {
-        if (this.element && this.frames[type]) {
+        if (!this.element) return;
+
+        // If a non-default skin is equipped, don't swap to default animation frames
+        if (window.OriaState && window.OriaState.equipped_skin !== 'default') {
+            return;
+        }
+
+        if (this.frames[type]) {
             this.element.src = this.frames[type];
         }
     }
@@ -27,9 +34,13 @@ class OriaMascot {
     async blink() {
         if (this.isAnimating) return;
         this.isAnimating = true;
-        this.setFrame('blinking');
-        await new Promise(r => setTimeout(r, 150));
-        this.setFrame('default');
+
+        if (!window.OriaState || window.OriaState.equipped_skin === 'default') {
+            this.setFrame('blinking');
+            await new Promise(r => setTimeout(r, 150));
+            this.setFrame('default');
+        }
+
         this.isAnimating = false;
     }
 
@@ -37,12 +48,19 @@ class OriaMascot {
         if (this.isAnimating) return;
         this.isAnimating = true;
 
-        // Quick "mlem" or talk movement
-        for (let i = 0; i < 2; i++) {
-            this.setFrame('talking');
-            await new Promise(r => setTimeout(r, 200));
-            this.setFrame('default');
-            await new Promise(r => setTimeout(r, 150));
+        if (window.OriaState && window.OriaState.equipped_skin !== 'default') {
+            // Custom skin: Just rock a little bit
+            this.element.classList.add('rocking-animation');
+            await new Promise(r => setTimeout(r, 400));
+            this.element.classList.remove('rocking-animation');
+        } else {
+            // Default skin: Quick "mlem" or talk movement
+            for (let i = 0; i < 2; i++) {
+                this.setFrame('talking');
+                await new Promise(r => setTimeout(r, 200));
+                this.setFrame('default');
+                await new Promise(r => setTimeout(r, 150));
+            }
         }
 
         this.isAnimating = false;
@@ -132,6 +150,8 @@ function updateDOMState() {
     if (profCoinsEl) profCoinsEl.textContent = window.OriaState.coins;
     if (profXpBar) profXpBar.style.width = window.OriaState.xp + '%';
     if (profXpText) profXpText.textContent = window.OriaState.xp;
+
+    if (window.updateGlobalMascot) window.updateGlobalMascot();
 }
 
 function addXP(amount) {
@@ -231,8 +251,7 @@ window.renderDailyQuests = function () {
 
     dailyQuests.forEach((quest, index) => {
         const item = document.createElement('div');
-        item.className = `daily-quest-item d-flex align-items-center p-2 rounded-3 border ${quest.completed ? 'completed-daily' : ''}`;
-        item.style.backgroundColor = quest.completed ? '#f8f9fa' : '#fff';
+        item.className = `daily-quest-item d-flex align-items-center p-2 rounded-3 ${quest.completed ? 'completed-daily' : ''}`;
         item.style.transition = 'all 0.3s ease';
 
         // Define checkbox check
@@ -291,6 +310,43 @@ function completeDailyQuest(questId, itemElement) {
             window.renderDailyQuests();
         }, 400);
     }
+}
+
+window.refreshDailyQuests = function (btnElement) {
+    if (btnElement) {
+        btnElement.disabled = true;
+        const icon = btnElement.querySelector('svg');
+        if (icon) icon.classList.add('fa-spin', 'text-primary'); // Adding simple generic spin if defined, or just rotation via inline css
+        btnElement.style.transform = 'rotate(180deg)';
+        btnElement.style.transition = 'transform 0.5s ease';
+    }
+
+    const container = document.getElementById('daily-quests-container');
+    if (container) container.innerHTML = '<p class="text-muted small text-center my-2">Regenerating quests...</p>';
+
+    fetch('/api/user/daily_refresh', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.OriaState.daily_quests = data.daily_quests;
+            }
+        })
+        .catch(err => console.error(err))
+        .finally(() => {
+            if (btnElement) {
+                btnElement.disabled = false;
+                btnElement.style.transform = 'rotate(360deg)';
+                const icon = btnElement.querySelector('svg');
+                if (icon) icon.classList.remove('text-primary');
+                setTimeout(() => { btnElement.style.transform = 'none'; btnElement.style.transition = 'none'; }, 500);
+            }
+            window.renderDailyQuests();
+        });
 }
 
 function openQuestModal(index) {
@@ -712,6 +768,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e) e.preventDefault();
         document.getElementById('dashboard-view').classList.remove('d-none');
         document.getElementById('profile-view').classList.add('d-none');
+        document.getElementById('header-gamification-stats').classList.remove('d-none');
         document.getElementById('nav-btn-home').classList.add('active');
         document.getElementById('nav-btn-profile').classList.remove('active');
     };
@@ -720,9 +777,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (e) e.preventDefault();
         document.getElementById('dashboard-view').classList.add('d-none');
         document.getElementById('profile-view').classList.remove('d-none');
+        document.getElementById('header-gamification-stats').classList.add('d-none');
         document.getElementById('nav-btn-home').classList.remove('active');
         document.getElementById('nav-btn-profile').classList.add('active');
-        window.renderStore();
+        window.renderInventory();
         window.renderProfileQuests();
     };
 
@@ -770,14 +828,28 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- STORE LOGIC ---
-    const storeItems = [
+    window.storeItems = [
         { id: 'default', name: 'Original', cost: 0, image: '/static/img/IMG_8442.PNG' },
-        { id: 'cyber', name: 'Cyber Mode', cost: 500, image: '/static/img/IMG_8435.PNG' },
-        { id: 'ninja', name: 'Focus Ninja', cost: 1000, image: '/static/img/IMG_8441.PNG' }
+        { id: 'skin_1', name: 'Variant Alpha', cost: 100, image: '/static/img/skins/IMG_8473.PNG' },
+        { id: 'skin_2', name: 'Variant Beta', cost: 100, image: '/static/img/skins/IMG_8474.PNG' },
+        { id: 'skin_3', name: 'Variant Gamma', cost: 100, image: '/static/img/skins/IMG_8475.PNG' },
+        { id: 'skin_4', name: 'Variant Delta', cost: 100, image: '/static/img/skins/IMG_8476.PNG' },
+        { id: 'skin_5', name: 'Variant Epsilon', cost: 100, image: '/static/img/skins/IMG_8477.PNG' },
+        { id: 'skin_6', name: 'Variant Zeta', cost: 100, image: '/static/img/skins/IMG_8478.PNG' }
     ];
 
-    window.renderStore = function () {
-        const container = document.getElementById('store-grid');
+    window.updateGlobalMascot = function () {
+        const equipped = window.OriaState.equipped_skin || "default";
+        const currentSkin = window.storeItems.find(s => s.id === equipped);
+        if (currentSkin) {
+            document.querySelectorAll('.mascot-home').forEach(img => {
+                img.src = currentSkin.image;
+            });
+        }
+    };
+
+    window.renderInventory = function () {
+        const container = document.getElementById('inventory-grid');
         if (!container) return;
 
         container.innerHTML = '';
@@ -785,15 +857,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const equipped = window.OriaState.equipped_skin || "default";
 
         // Update mascot globally
-        const currentSkin = storeItems.find(s => s.id === equipped);
-        if (currentSkin) {
-            document.querySelectorAll('.mascot-home').forEach(img => {
-                img.src = currentSkin.image;
-            });
-        }
+        window.updateGlobalMascot();
 
-        storeItems.forEach(item => {
-            const isOwned = owned.includes(item.id);
+        const ownedItems = window.storeItems.filter(item => owned.includes(item.id));
+
+        ownedItems.forEach(item => {
             const isEquipped = equipped === item.id;
 
             const card = document.createElement('div');
@@ -802,18 +870,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
             let btnHtml = '';
             if (isEquipped) {
-                btnHtml = `<button class="btn btn-sm btn-success w-100 disabled rounded-pill fw-bold">Equipped</button>`;
-            } else if (isOwned) {
-                btnHtml = `<button class="btn btn-sm btn-outline-primary w-100 rounded-pill fw-bold" onclick="window.equipSkin('${item.id}')">Equip</button>`;
+                btnHtml = `<button class="btn btn-sm btn-success w-100 rounded-pill fw-bold disabled">Equipped</button>`;
             } else {
-                btnHtml = `<button class="btn btn-sm ${window.OriaState.coins >= item.cost ? 'btn-primary' : 'btn-secondary disabled'} w-100 rounded-pill fw-bold" onclick="window.buySkin('${item.id}', ${item.cost})">Buy (🪙 ${item.cost})</button>`;
+                btnHtml = `<button class="btn btn-sm btn-outline-primary w-100 rounded-pill fw-bold" onclick="window.equipSkin('${item.id}')">Equip</button>`;
             }
 
             card.innerHTML = `
-                <img src="${item.image}" alt="${item.name}">
+                <div class="store-card-img-wrapper" style="background: var(--gradient-card);">
+                   <img src="${item.image}" alt="${item.name}" class="store-card-img">
+                </div>
                 <div>
                    <div class="store-card-title">${item.name}</div>
-                   ${!isOwned ? `<div class="store-card-price">🪙 ${item.cost}</div>` : ''}
                    ${btnHtml}
                 </div>
             `;
@@ -821,29 +888,82 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-    window.buySkin = function (id, cost) {
-        if (window.OriaState.coins < cost) return;
+    let isSpinning = false;
+    window.spinRoulette = function (cost) {
+        if (isSpinning) return;
+        if (window.OriaState.coins < cost) {
+            alert('Not enough coins to spin!');
+            return;
+        }
 
-        fetch('/api/store/buy', {
+        isSpinning = true;
+        const msgEl = document.getElementById('roulette-msg');
+        const imgEl = document.getElementById('roulette-display-img');
+        const btnEl = document.getElementById('btn-spin-roulette');
+
+        msgEl.textContent = 'Spinning...';
+        msgEl.className = 'text-primary small mt-2 mb-0 fw-bold';
+        btnEl.disabled = true;
+
+        // Remove silhoette filter for animation
+        imgEl.style.filter = 'none';
+
+        let spinCount = 0;
+        const spinInterval = setInterval(() => {
+            imgEl.src = window.storeItems[spinCount % window.storeItems.length].image;
+            spinCount++;
+        }, 50); // rapidly switch images every 50ms
+
+        fetch('/api/store/roulette', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ skin_id: id, price: cost })
+            headers: { 'Content-Type': 'application/json' }
         })
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
-                    window.OriaState.coins = data.coins;
-                    window.OriaState.owned_skins.push(id);
-                    window.OriaState.equipped_skin = id;
-                    updateDOMState();
-                    window.renderStore();
-                } else {
-                    alert(data.error);
-                }
+                // Ensure spin happens for at least a fun duration (1.0 seconds)
+                setTimeout(() => {
+                    clearInterval(spinInterval);
+                    isSpinning = false;
+                    btnEl.disabled = false;
+
+                    if (data.success) {
+                        window.OriaState.coins = data.coins;
+                        window.OriaState.owned_skins.push(data.unlocked_skin);
+
+                        const wonSkinObj = window.storeItems.find(s => s.id === data.unlocked_skin);
+                        if (wonSkinObj) imgEl.src = wonSkinObj.image;
+
+                        msgEl.textContent = `You unlocked ${wonSkinObj ? wonSkinObj.name : data.unlocked_skin}! 🎉`;
+                        msgEl.className = 'text-success small mt-2 mb-0 fw-bold';
+
+                        updateDOMState();
+                        window.updateGlobalMascot(); // Added call to updateGlobalMascot
+                        window.renderInventory();
+                    } else {
+                        imgEl.src = '/static/img/IMG_8435.PNG'; // back to default question mark state
+                        imgEl.style.filter = 'brightness(0) invert(0.8)';
+                        msgEl.textContent = data.error;
+                        msgEl.className = 'text-danger small mt-2 mb-0 fw-bold';
+                    }
+                }, 1000);
+            })
+            .catch(err => {
+                clearInterval(spinInterval);
+                isSpinning = false;
+                btnEl.disabled = false;
+                msgEl.textContent = 'Error connecting to system.';
+                msgEl.className = 'text-danger small mt-2 mb-0 fw-bold';
+                console.error(err);
             });
     };
 
     window.equipSkin = function (id) {
+        // Optimistic UI Update: Instantly change it so there is no network delay
+        const previousSkin = window.OriaState.equipped_skin;
+        window.OriaState.equipped_skin = id;
+        window.updateGlobalMascot();
+        window.renderInventory();
+
         fetch('/api/store/equip', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -851,10 +971,20 @@ document.addEventListener('DOMContentLoaded', () => {
         })
             .then(res => res.json())
             .then(data => {
-                if (data.success) {
-                    window.OriaState.equipped_skin = id;
-                    window.renderStore();
+                if (!data.success) {
+                    // Revert on failure
+                    window.OriaState.equipped_skin = previousSkin;
+                    window.updateGlobalMascot();
+                    window.renderInventory();
+                    alert(data.error || 'Failed to equip skin');
                 }
+            })
+            .catch(err => {
+                // Revert on error
+                window.OriaState.equipped_skin = previousSkin;
+                window.updateGlobalMascot();
+                window.renderInventory();
+                console.error('Error equipping skin:', err);
             });
     };
 });
