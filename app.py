@@ -12,7 +12,7 @@ app = Flask(__name__)
 app.secret_key = 'oria_very_secret_key' # In production, use a secure random key
 
 # Database Configuration
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////app/instance/users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -566,4 +566,4 @@ def api_store_equip():
     return jsonify({'success': True, 'equipped_skin': skin_id})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True, port=5000)
