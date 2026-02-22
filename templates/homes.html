@@ -24,17 +24,17 @@
         </div>
 
         <!-- XP Progress Bar -->
-        <div class="progress mb-4 mx-auto"
+        <div class="progress mb-2 mx-auto"
             style="height: 10px; max-width: 300px; border-radius: 10px; background: rgba(0,0,0,0.05); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
             <div id="user-xp-bar" class="progress-bar" role="progressbar"
                 style="width: {{ user.xp }}%; background: var(--accent-pink);" aria-valuenow="{{ user.xp }}"
                 aria-valuemin="0" aria-valuemax="100"></div>
         </div>
 
-        <div class="mb-2">
+        <div class="mb-2 text-center" style="margin-top: 5px;">
             <img src="{{ url_for('static', filename='img/IMG_8442.PNG') }}" alt="ORIA Mascot" class="mascot-home"
                 id="oria-mascot">
-            <h2 class="fw-bold mb-2">Welcome, {{ user.username }}!</h2>
+            <h2 class="fw-bold mb-3 mt-1">Welcome, {{ user.username }}!</h2>
         </div>
 
         <!-- Quick Quest Input -->
@@ -50,20 +50,30 @@
 
         <!-- Main Quests Container -->
         <div class="glass-card text-start mb-4 p-4">
-            <h5 class="fw-bold mb-3 d-flex align-items-center" style="color: var(--text-main);">
-                <svg class="me-2 text-primary" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                    stroke-linejoin="round">
-                    <path d="M12 2v20"></path>
-                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between"
+                style="color: var(--text-main); cursor: pointer;" data-bs-toggle="collapse"
+                data-bs-target="#questsCollapseContainer" aria-expanded="false" aria-controls="questsCollapseContainer">
+                <span class="d-flex align-items-center">
+                    <svg class="me-2 text-primary" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M12 2v20"></path>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    Active Quests
+                </span>
+                <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
                 </svg>
-                Active Quests
             </h5>
-            <div id="quests-container" class="d-flex flex-column gap-3">
-                <!-- Quests injected by JS -->
-                <p class="text-muted small text-center my-3" id="no-quests-msg">No quests yet. Ask ORIA or use Quick
-                    Quest!
-                </p>
+            <div class="collapse" id="questsCollapseContainer">
+                <div id="quests-container" class="d-flex flex-column gap-3">
+                    <!-- Quests injected by JS -->
+                    <p class="text-muted small text-center my-3" id="no-quests-msg">No quests yet. Ask ORIA or use Quick
+                        Quest!
+                    </p>
+                </div>
             </div>
         </div>
     </div>

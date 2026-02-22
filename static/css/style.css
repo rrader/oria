@@ -152,7 +152,7 @@ body {
 
 /* Home Mascot */
 .mascot-home {
-  width: 350px;
+  width: 175px;
   height: auto;
   filter: drop-shadow(0 15px 25px rgba(0, 0, 0, 0.1));
   margin-bottom: 0.5rem;
@@ -614,4 +614,13 @@ body {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+/* Chevron animation for collapsible containers */
+.chevron-icon {
+  transition: transform 0.3s ease;
+}
+
+[data-bs-toggle="collapse"][aria-expanded="false"] .chevron-icon {
+  transform: rotate(-90deg);
 }
