@@ -2,6 +2,7 @@
   --primary-gradient: linear-gradient(135deg, #89aff0 0%, #dd849d 100%);
   --bg-color: #f8faff;
   --card-bg: rgba(255, 255, 255, 0.85);
+  --card-bg-solid: #ffffff;
   --text-main: #2d3436;
   --text-muted: #636e72;
   --accent-blue: #89aff0;
@@ -9,8 +10,156 @@
   --radius-lg: 24px;
   --radius-md: 16px;
   --glass-border: rgba(255, 255, 255, 0.3);
+  --glass-border-solid: #f0f0f0;
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+  --quiz-bg: #fdfdfd;
 }
+
+[data-theme="dark"] {
+  --primary-gradient: linear-gradient(135deg, #00f2fe 0%, #4facfe 100%);
+  --bg-color: #0b1120;
+  --card-bg: rgba(15, 23, 42, 0.85);
+  --card-bg-solid: #1e293b;
+  --text-main: #f8fafc;
+  --text-muted: #94a3b8;
+  --accent-blue: #0ea5e9;
+  --accent-pink: #d946ef;
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --glass-border-solid: #334155;
+  --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  --quiz-bg: #0f172a;
+}
+
+[data-theme="dark"] .bottom-nav {
+  background: var(--card-bg-solid) !important;
+  border-top: 1px solid var(--glass-border-solid) !important;
+}
+
+[data-theme="dark"] .nav-item {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .nav-item.active {
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .quest-card,
+[data-theme="dark"] .glass-card {
+  background-color: var(--card-bg-solid) !important;
+  border-color: var(--glass-border-solid) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .quest-card h6,
+[data-theme="dark"] .quest-card .text-dark,
+[data-theme="dark"] .daily-task-label.text-dark {
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .bg-light,
+[data-theme="dark"] .bg-white {
+  background-color: var(--card-bg-solid) !important;
+  color: var(--text-main) !important;
+  border-color: var(--glass-border-solid) !important;
+}
+
+[data-theme="dark"] .text-dark,
+[data-theme="dark"] .badge.text-dark {
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .badge.bg-warning {
+  background-color: rgba(255, 193, 7, 0.2) !important;
+  border-color: #ffc107 !important;
+  color: #ffc107 !important;
+}
+
+[data-theme="dark"] .form-control {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  color: var(--text-main) !important;
+  border-color: var(--glass-border-solid) !important;
+}
+
+[data-theme="dark"] .form-control::placeholder {
+  color: rgba(255, 255, 255, 0.4) !important;
+}
+
+[data-theme="dark"] .text-muted {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] #theme-icon {
+  color: #e2e8f0 !important;
+}
+
+[data-theme="dark"] .quiz-option-label {
+  background-color: var(--card-bg-solid) !important;
+  border-color: var(--glass-border-solid) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .quiz-option-label:hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme="dark"] .quiz-option-input:checked+.quiz-option-label {
+  background-color: rgba(14, 165, 233, 0.15) !important;
+  border-color: var(--accent-blue) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .daily-quest-item:not(.completed-daily):hover {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+}
+
+[data-theme="dark"] .daily-quest-item:active {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+/* Chat Overrides */
+[data-theme="dark"] .offcanvas,
+[data-theme="dark"] .offcanvas-body {
+  background-color: var(--bg-color) !important;
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] .offcanvas-header {
+  background-color: var(--card-bg-solid) !important;
+  border-bottom-color: var(--glass-border-solid) !important;
+}
+
+[data-theme="dark"] .btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+}
+
+[data-theme="dark"] .chat-bubble.ai {
+  background: var(--card-bg-solid) !important;
+  color: var(--text-main) !important;
+  border-color: var(--glass-border-solid) !important;
+}
+
+[data-theme="dark"] .chat-bubble.user {
+  background: var(--primary-gradient) !important;
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .chat-input-area {
+  background-color: var(--bg-color) !important;
+}
+
+[data-theme="dark"] .chat-input-area .input-group {
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: var(--glass-border-solid) !important;
+}
+
+[data-theme="dark"] #chat-input-text {
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] #chat-input-text::placeholder {
+  color: var(--text-muted) !important;
+}
+
 
 * {
   box-sizing: border-box;
@@ -33,7 +182,7 @@ body {
   margin: 0 auto;
   height: 100vh;
   height: 100dvh;
-  background: white;
+  background: var(--bg-color);
   box-shadow: 0 0 40px rgba(0, 0, 0, 0.03);
   position: relative;
   display: flex;
@@ -50,7 +199,7 @@ body {
 
 /* Glassmorphism Header */
 .nav_header {
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--card-bg);
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   border-bottom: 1px solid var(--glass-border);
@@ -285,10 +434,10 @@ body {
 .quest-chain-item {
   position: relative;
   padding: 15px 15px 15px 20px;
-  background: white;
+  background: var(--card-bg-solid);
   border-radius: 12px;
   margin-bottom: 20px;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--glass-border-solid);
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
   transition: all 0.3s;
 }
@@ -328,10 +477,10 @@ body {
 }
 
 .quest-card {
-  background: white;
+  background: var(--card-bg-solid);
   border-radius: var(--radius-md);
   padding: 16px;
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--glass-border-solid);
   border-left: 4px solid var(--accent-blue);
   box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
   cursor: pointer;
@@ -345,14 +494,14 @@ body {
 }
 
 .daily-quest-item {
-  border: 1px solid #f0f0f0;
+  border: 1px solid var(--glass-border-solid);
   border-left: 4px solid var(--accent-pink) !important;
-  background-color: #fff;
+  background-color: var(--card-bg-solid);
 }
 
 .daily-quest-item.completed-daily {
-  border-left-color: #ccc !important;
-  background-color: #f8f9fa !important;
+  border-left-color: var(--text-muted) !important;
+  background-color: var(--bg-color) !important;
 }
 
 /* Chat Styles */
@@ -378,10 +527,10 @@ body {
 }
 
 .chat-bubble.ai {
-  background: white;
+  background: var(--card-bg-solid);
   border-bottom-left-radius: 4px;
   align-self: flex-start;
-  border: 1px solid #f4f4f4;
+  border: 1px solid var(--glass-border-solid);
 }
 
 .chat-bubble.user {
@@ -479,8 +628,8 @@ body {
 }
 
 .quiz-container {
-  background: #fdfdfd;
-  border: 1px solid #f0f0f0;
+  background: var(--quiz-bg);
+  border: 1px solid var(--glass-border-solid);
   border-radius: 12px;
   padding: 15px;
   margin-bottom: 15px;
@@ -568,7 +717,7 @@ body {
 }
 
 .store-card {
-  background: white;
+  background: var(--card-bg-solid);
   border-radius: 12px;
   padding: 15px;
   text-align: center;

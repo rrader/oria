@@ -128,12 +128,16 @@ export function addXP(amount) {
 
 export function renderQuests() {
     const container = document.getElementById('quests-container');
-    const noQuestsMsg = document.getElementById('no-quests-msg');
-    if (!container) return;
+    const emptyStateHTML = `
+        <div class="empty-state text-center p-5 mt-4" style="background: var(--card-bg-solid); border: 1px dashed var(--glass-border-solid); border-radius: var(--radius-lg);">
+            <img src="/static/img/IMG_8435.PNG" alt="Sleeping Mascot" width="100" style="opacity: 0.7; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.05));" class="mb-3">
+            <h5 class="fw-bold" style="color: var(--text-main);">The opossum is playing dead...</h5>
+            <p class="text-muted small mb-0 fw-semibold">No active quests found. Enter a quick goal above to wake him up and earn XP!</p>
+        </div>
+    `;
 
     if (!OriaState.quests || OriaState.quests.length === 0) {
-        container.innerHTML = '';
-        if (noQuestsMsg) container.appendChild(noQuestsMsg);
+        container.innerHTML = emptyStateHTML;
         return;
     }
 
@@ -149,7 +153,7 @@ export function renderQuests() {
         activeQuestsCount++;
 
         const card = document.createElement('div');
-        card.className = 'quest-card p-3 mb-2 shadow-sm bg-white rounded-3 border';
+        card.className = 'quest-card p-3 mb-2 shadow-sm rounded-3 border';
         card.style.cursor = 'pointer';
         card.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-2">
@@ -169,8 +173,8 @@ export function renderQuests() {
         container.appendChild(card);
     });
 
-    if (activeQuestsCount === 0 && noQuestsMsg) {
-        container.appendChild(noQuestsMsg);
+    if (activeQuestsCount === 0) {
+        container.innerHTML = emptyStateHTML;
     }
 }
 
@@ -229,7 +233,6 @@ function completeDailyQuest(questId, itemElement) {
 
     if (questIndex > -1 && !dailyQuests[questIndex].completed) {
         const label = itemElement.querySelector('.daily-task-label');
-        itemElement.style.backgroundColor = '#f8f9fa';
         label.classList.remove('text-dark', 'fw-semibold');
         label.classList.add('text-muted', 'text-decoration-line-through');
 
@@ -523,7 +526,15 @@ export function renderProfileQuests() {
     const completedQuests = allQuests.filter(q => q.sub_tasks && q.sub_tasks.length > 0 && q.sub_tasks.every(t => t.completed));
 
     if (completedQuests.length === 0) {
-        container.innerHTML = '<p class="text-muted small text-center my-3 fw-bold" id="no-completed-quests-msg">No completed quests yet.</p>';
+        container.innerHTML = `
+            <div class="empty-state text-center p-5 mt-4" style="background: var(--card-bg-solid); border: 1px dashed var(--glass-border-solid); border-radius: var(--radius-lg);">
+                <div class="mb-3" style="font-size: 2.5rem; color: var(--accent-blue); opacity: 0.5;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mb-2"><line x1="22" y1="12" x2="2" y2="12"></line><path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path><line x1="6" y1="16" x2="6.01" y2="16"></line><line x1="10" y1="16" x2="10.01" y2="16"></line></svg>
+                </div>
+                <h6 class="fw-bold" style="color: var(--text-main);">No Records</h6>
+                <p class="text-muted small mb-0 fw-semibold">No completed objectives found in the databanks.</p>
+            </div>
+        `;
         return;
     }
 
@@ -534,7 +545,7 @@ export function renderProfileQuests() {
         const progress = Math.round((completedTasks / totalTasks) * 100) || 0;
 
         const card = document.createElement('div');
-        card.className = 'quest-card p-3 mb-2 shadow-sm bg-white rounded-3 border';
+        card.className = 'quest-card p-3 mb-2 shadow-sm rounded-3 border';
         card.style.cursor = 'pointer';
         card.innerHTML = `
             <div class="d-flex justify-content-between align-items-center mb-2">

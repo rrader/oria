@@ -6,9 +6,20 @@
 <header class="nav_header d-flex flex-column" style="padding-bottom: 5px;">
     <div class="d-flex justify-content-between align-items-center w-100 mb-2">
         <h1 class="mb-0">ORIA</h1>
-        <a href="{{ url_for('auth.logout') }}" class="btn-outline-oria"
-            style="padding: 6px 16px; font-size: 0.85rem;">Log
-            Out</a>
+        <div class="d-flex align-items-center">
+            <button id="theme-toggle"
+                class="btn btn-sm btn-outline-secondary me-3 rounded-circle d-flex align-items-center justify-content-center"
+                style="width: 32px; height: 32px; padding: 0; border: none; background: transparent;">
+                <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                    class="bi bi-moon-fill" viewBox="0 0 16 16">
+                    <path
+                        d="M6 .278a.77.77 0 0 1 .08.858 7.2 7.2 0 0 0-.878 3.46c0 4.021 3.278 7.277 7.318 7.277q.792-.001 1.533-.16a.79.79 0 0 1 .81.316.73.73 0 0 1-.031.893A8.35 8.35 0 0 1 8.344 16C3.734 16 0 12.286 0 7.71 0 4.266 2.114 1.312 5.124.06A.75.75 0 0 1 6 .278" />
+                </svg>
+            </button>
+            <a href="{{ url_for('auth.logout') }}" class="btn-outline-oria"
+                style="padding: 6px 16px; font-size: 0.85rem;">Log
+                Out</a>
+        </div>
     </div>
 
     <!-- Pinned Gamification Stats (Visible only on Dashboard) -->
@@ -46,7 +57,7 @@
         <!-- Quick Quest Input -->
         <div class="quick-quest-container mb-4 mx-auto" style="max-width: 400px;">
             <div class="glass-search p-2 rounded-pill d-flex align-items-center"
-                style="background: rgba(255,255,255,0.7); border: 1px solid var(--glass-border); box-shadow: var(--shadow);">
+                style="background: var(--card-bg); border: 1px solid var(--glass-border); box-shadow: var(--shadow);">
                 <input type="text" id="quick-quest-input" class="form-control border-0 bg-transparent shadow-none"
                     placeholder="Enter a quick goal">
                 <button id="btn-quick-quest" class="btn btn-primary-oria rounded-pill px-4 ms-2 py-2"
@@ -161,7 +172,7 @@
             Skin Roulette
         </h4>
         <div class="glass-card mb-4 p-4 text-center"
-            style="border: 2px solid var(--accent-blue); background: linear-gradient(135deg, rgba(255,255,255,0.8), rgba(230,240,255,0.9));">
+            style="border: 2px solid var(--accent-blue); background: var(--card-bg);">
             <div id="roulette-window"
                 class="mx-auto overflow-hidden d-flex justify-content-center align-items-center bg-white shadow-sm mb-3"
                 style="width: 120px; height: 120px; border-radius: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.1) !important;">
@@ -235,7 +246,7 @@
         <h5 class="offcanvas-title fw-bold d-flex align-items-center gap-2" id="chatOffcanvasLabel">
             <span
                 style="display:inline-block; width:10px; height:10px; background:var(--accent-pink); border-radius:50%; box-shadow: 0 0 10px var(--accent-pink);"></span>
-            ORIA Cyber-Link
+            ORIA
         </h5>
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>

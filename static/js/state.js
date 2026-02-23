@@ -21,3 +21,16 @@ export const storeItems = [
 export function setState(newState) {
     Object.assign(OriaState, newState);
 }
+
+export function initTheme() {
+    const savedTheme = localStorage.getItem('oria_theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+}
+
+export function toggleTheme() {
+    const currentTheme = document.documentElement.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', newTheme);
+    localStorage.setItem('oria_theme', newTheme);
+    return newTheme;
+}
