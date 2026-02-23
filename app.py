@@ -6,6 +6,7 @@ import datetime
 import random
 from dotenv import load_dotenv
 from openai import OpenAI
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Load environment variables
 load_dotenv('config.env')
@@ -115,7 +116,7 @@ def register():
         # Check if user already exists
         existing_user = User.query.filter((User.username == name) | (User.email == email)).first()
         if existing_user:
-            if existing_user.password == password:
+            if check_password_hash(existing_user.password, password):
                 session['user_id'] = existing_user.id
                 session['username'] = existing_user.username
                 return redirect(url_for('home'))
@@ -123,7 +124,8 @@ def register():
             return redirect(url_for('register'))
 
         # Create and save new user
-        new_user = User(username=name, email=email, password=password, pronouns=pronouns)
+        hashed_password = generate_password_hash(password, method='pbkdf2:sha256')
+        new_user = User(username=name, email=email, password=hashed_password, pronouns=pronouns)
         db.session.add(new_user)
         db.session.commit()
 
@@ -146,7 +148,7 @@ def login():
         password = request.form.get('password')
         
         user = User.query.filter_by(email=email).first()
-        if user and user.password == password:
+        if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
             session['username'] = user.username
             return redirect(url_for('home'))
@@ -579,7 +581,7 @@ def api_quiz_explain():
         system_prompt = {
             "role": "system",
             "content": (
-                "You are ORIA, a Cyberpunk System Guide. Provide a short, punchy, 1-2 sentence explanation. "
+                "You are ORIA, a opossum System Guide. Provide a short, punchy, 1-2 sentence explanation. "
                 "Explain why the user's answer was wrong (if it was) and why the correct answer is right. "
                 "Keep the tone encouraging but slightly edgy."
             )
