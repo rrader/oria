@@ -13,7 +13,7 @@
         <p class="text-muted text-center mb-4">Please answer 5 quick questions so we can personalize your experience.
         </p>
 
-        <form action="{{ url_for('onboarding') }}" method="post" class="form">
+        <form action="{{ url_for('views.onboarding') }}" method="post" class="form">
             <div class="mb-4">
                 <label for="q1" class="form-label">1. Tell us a bit about yourself?</label>
                 <input type="text" name="q1" id="q1" placeholder="Your answer..." class="form-control" required>

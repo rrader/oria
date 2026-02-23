@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Welcome - ORIA{% endblock %}
+
+{% block content %}
+<main class="container px-4 py-5 d-flex flex-column justify-content-center align-items-center"
+    style="min-height: 100vh; text-align: center;">
+
+    <!-- Hero Mascot & Title -->
+    <div class="mb-5">
+        <img src="{{ url_for('static', filename='img/IMG_6064.PNG') }}" alt="ORIA Mascot"
+            style="max-width: 260px; filter: drop-shadow(0 15px 25px rgba(0,0,0,0.15)); margin-bottom: 2rem; animation: float 4s ease-in-out infinite;">
+        <h1 class="fw-bold" style="font-size: 3rem; color: var(--text-main); letter-spacing: -1px;">ORIA</h1>
+        <p class="text-muted fs-5 mt-2 mb-0">Your personal productivity companion.</p>
+    </div>
+
+    <!-- Call to Action Buttons -->
+    <div class="w-100" style="max-width: 350px;">
+        <a href="{{ url_for('auth.register') }}"
+            class="btn btn-primary-oria btn-lg w-100 rounded-pill fw-bold mb-3 shadow-sm py-3"
+            style="font-size: 1.1rem;">
+            Get Started
+        </a>
+        <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg w-100 rounded-pill fw-bold py-3"
+            style="border-color: var(--accent-blue); color: var(--accent-blue); font-size: 1.1rem;">
+            I already have an account
+        </a>
+    </div>
+
+</main>
+{% endblock %}
