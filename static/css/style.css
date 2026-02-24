@@ -826,3 +826,98 @@ body {
 [data-bs-toggle="collapse"][aria-expanded="false"] .chevron-icon {
   transform: rotate(-90deg);
 }
+
+/* Leaderboard & Stats */
+.badge-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.badge-card {
+  background: var(--card-bg-solid);
+  border: 1px solid var(--glass-border-solid);
+  border-radius: var(--radius-md);
+  padding: 1rem;
+  transition: all 0.3s ease;
+}
+
+.badge-card.badge-locked {
+  filter: grayscale(100%);
+  opacity: 0.5;
+}
+
+.badge-card.badge-unlocked {
+  filter: none;
+  opacity: 1;
+  text-shadow: 0 0 10px var(--accent-pink);
+  border: 1px solid var(--accent-pink) !important;
+  box-shadow: 0 0 10px rgba(217, 70, 239, 0.3) !important;
+}
+
+.badge-icon {
+  font-size: 2rem;
+}
+
+.leaderboard-list .list-group-item:last-child {
+  border-bottom: none !important;
+}
+
+/* Stats View Global Dark Mode Contrast Overrides */
+[data-theme="dark"] #stats-view h2,
+[data-theme="dark"] #stats-view h4,
+[data-theme="dark"] #stats-view p,
+[data-theme="dark"] #stats-view h6,
+[data-theme="dark"] #stats-view .text-dark,
+[data-theme="dark"] .badge-card h6 {
+  color: var(--text-main) !important;
+}
+
+[data-theme="dark"] #stats-view small.text-muted,
+[data-theme="dark"] .badge-card small.text-muted,
+[data-theme="dark"] .other-user-row small.text-muted {
+  color: var(--text-muted) !important;
+}
+
+[data-theme="dark"] .other-user-row h6,
+[data-theme="dark"] .other-user-row {
+  color: var(--text-main) !important;
+}
+
+/* Global Achievement Toast */
+#achievement-toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-150%);
+  background: var(--card-bg-solid);
+  border: 2px solid var(--accent-pink);
+  box-shadow: 0 0 20px rgba(217, 70, 239, 0.4);
+  border-radius: var(--radius-md);
+  padding: 1rem 1.5rem;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#achievement-toast.toast-visible {
+  transform: translateX(-50%) translateY(0);
+}
+
+#achievement-toast .toast-icon {
+  font-size: 2.5rem;
+}
+
+#achievement-toast .toast-text h5 {
+  margin: 0;
+  color: var(--accent-pink);
+  font-weight: bold;
+}
+
+#achievement-toast .toast-text p {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-main);
+}

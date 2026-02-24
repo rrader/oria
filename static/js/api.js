@@ -5,12 +5,25 @@ export async function fetchUserState() {
     return await res.json();
 }
 
-export function saveStateAPI() {
-    return fetch('/api/user/update', {
+export async function saveStateAPI() {
+    const res = await fetch('/api/user/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(OriaState)
     });
+    const data = await res.json();
+
+    if (data.newly_unlocked && data.newly_unlocked.length > 0) {
+        data.newly_unlocked.forEach(ach => {
+            if (!OriaState.achievements) OriaState.achievements = [];
+            if (!OriaState.achievements.includes(ach)) {
+                OriaState.achievements.push(ach);
+            }
+            window.dispatchEvent(new CustomEvent('achievementUnlocked', { detail: { id: ach } }));
+        });
+    }
+
+    return data;
 }
 
 export async function refreshDailyQuestsAPI() {
@@ -67,5 +80,10 @@ export async function equipSkinAPI(skin_id) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ skin_id })
     });
+    return await res.json();
+}
+
+export async function fetchLeaderboardAPI() {
+    const res = await fetch('/api/leaderboard');
     return await res.json();
 }

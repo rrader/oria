@@ -68,9 +68,28 @@ def get_user_state():
     if not user:
         return jsonify({'error': 'User not found'}), 404
         
-    today_str = datetime.date.today().isoformat()
+    today_date = datetime.date.today()
+    today_str = today_date.isoformat()
+    
     if user.last_daily_date != today_str:
         _generate_daily_quests(user)
+
+    # Streak logic
+    if user.last_active_date != today_str:
+        if user.last_active_date:
+            try:
+                last_active = datetime.date.fromisoformat(user.last_active_date)
+                if last_active == today_date - datetime.timedelta(days=1):
+                    user.current_streak += 1
+                else:
+                    user.current_streak = 1
+            except ValueError:
+                user.current_streak = 1
+        else:
+            user.current_streak = 1
+            
+        user.last_active_date = today_str
+        db.session.commit()
 
     return jsonify({
         'level': user.level,
@@ -79,7 +98,9 @@ def get_user_state():
         'quests': user.get_quests(),
         'daily_quests': user.get_daily_quests(),
         'owned_skins': user.get_owned_skins(),
-        'equipped_skin': user.equipped_skin
+        'equipped_skin': user.equipped_skin,
+        'current_streak': user.current_streak,
+        'achievements': user.get_achievements()
     })
 
 @api_bp.route('/user/daily_refresh', methods=['POST'])
@@ -117,9 +138,42 @@ def update_user_state():
         user.coins = data['coins']
     if 'quests' in data:
         user.set_quests(data['quests'])
+    if 'achievements' in data:
+        user.set_achievements(data['achievements'])
+        
+    current_achievements = user.get_achievements()
+    newly_unlocked = []
+    
+    # Check Initiate Achievement
+    if 'initiate' not in current_achievements:
+        has_completed_task = False
+        if 'quests' in data:
+            for q in data['quests']:
+                if q.get('status') == 'completed' or any(st.get('completed') for st in q.get('sub_tasks', [])):
+                    has_completed_task = True
+                    break
+                    
+        # Consider an achievement granted if they gained any progression
+        if has_completed_task or user.xp > 0 or user.level > 1 or user.coins > 0:
+            current_achievements.append('initiate')
+            newly_unlocked.append('initiate')
+            
+    # Check On Fire Achievement
+    if 'on_fire' not in current_achievements:
+        if user.current_streak >= 3:
+            current_achievements.append('on_fire')
+            newly_unlocked.append('on_fire')
+            
+    if newly_unlocked:
+        user.set_achievements(current_achievements)
         
     db.session.commit()
-    return jsonify({'success': True})
+    
+    response_data = {'success': True}
+    if newly_unlocked:
+        response_data['newly_unlocked'] = newly_unlocked
+        
+    return jsonify(response_data)
 
 @api_bp.route('/chat', methods=['POST'])
 def api_chat():
@@ -423,8 +477,21 @@ def api_store_roulette():
     owned_skins.append(chosen_skin)
     user.set_owned_skins(owned_skins)
     
+    # Unlock cyber_spender achievement if it's the user's first purchase
+    newly_unlocked = []
+    current_achievements = user.get_achievements()
+    if 'cyber_spender' not in current_achievements:
+        current_achievements.append('cyber_spender')
+        user.set_achievements(current_achievements)
+        newly_unlocked.append('cyber_spender')
+    
     db.session.commit()
-    return jsonify({'success': True, 'coins': user.coins, 'unlocked_skin': chosen_skin})
+    
+    response_data = {'success': True, 'coins': user.coins, 'unlocked_skin': chosen_skin}
+    if newly_unlocked:
+        response_data['newly_unlocked'] = newly_unlocked
+        
+    return jsonify(response_data)
 
 @api_bp.route('/store/equip', methods=['POST'])
 def api_store_equip():
@@ -447,3 +514,22 @@ def api_store_equip():
     user.equipped_skin = skin_id
     db.session.commit()
     return jsonify({'success': True, 'equipped_skin': skin_id})
+
+@api_bp.route('/leaderboard', methods=['GET'])
+def api_leaderboard():
+    if 'user_id' not in session:
+        return jsonify({'error': 'Unauthorized'}), 401
+        
+    top_users = User.query.order_by(User.level.desc(), User.xp.desc()).limit(10).all()
+    leaderboard = []
+    
+    for u in top_users:
+        leaderboard.append({
+            "username": u.username,
+            "level": u.level,
+            "xp": u.xp,
+            "current_streak": u.current_streak,
+            "is_current_user": u.id == session['user_id']
+        })
+        
+    return jsonify({'leaderboard': leaderboard})

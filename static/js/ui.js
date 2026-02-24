@@ -1,8 +1,31 @@
 import { OriaState, storeItems } from './state.js';
 import {
     saveStateAPI, refreshDailyQuestsAPI, generateQuizAPI, explainQuizAPI,
-    spinRouletteAPI, equipSkinAPI
+    spinRouletteAPI, equipSkinAPI, fetchLeaderboardAPI
 } from './api.js';
+
+class AudioPlayer {
+    constructor() {
+        this.successSound = new Audio('/static/audio/success.mp3');
+        this.levelUpSound = new Audio('/static/audio/levelup.mp3');
+    }
+
+    playSuccess() {
+        try {
+            this.successSound.currentTime = 0;
+            this.successSound.play().catch(e => console.warn("Audio autoplay prevented:", e));
+        } catch (e) { }
+    }
+
+    playLevelUp() {
+        try {
+            this.levelUpSound.currentTime = 0;
+            this.levelUpSound.play().catch(e => console.warn("Audio autoplay prevented:", e));
+        } catch (e) { }
+    }
+}
+
+export const OriaAudio = new AudioPlayer();
 
 export class OriaMascot {
     constructor(elementId, frames) {
@@ -107,6 +130,7 @@ export function addXP(amount) {
     OriaState.coins += Math.floor(amount / 2);
 
     if (OriaState.xp >= 100) {
+        OriaAudio.playLevelUp();
         OriaState.level += Math.floor(OriaState.xp / 100);
         OriaState.xp = OriaState.xp % 100;
 
@@ -232,6 +256,7 @@ function completeDailyQuest(questId, itemElement) {
     const questIndex = dailyQuests.findIndex(q => q.id === questId);
 
     if (questIndex > -1 && !dailyQuests[questIndex].completed) {
+        OriaAudio.playSuccess();
         const label = itemElement.querySelector('.daily-task-label');
         label.classList.remove('text-dark', 'fw-semibold');
         label.classList.add('text-muted', 'text-decoration-line-through');
@@ -511,6 +536,7 @@ export function openQuestModal(index) {
 export function completeTask(qIndex, tIndex) {
     const task = OriaState.quests[qIndex].sub_tasks[tIndex];
     if (task && !task.completed) {
+        OriaAudio.playSuccess();
         task.completed = true;
         addXP(task.xp_reward || 50);
         renderQuests();
@@ -652,6 +678,16 @@ export function spinRouletteHandler(cost) {
                     OriaState.coins = data.coins;
                     OriaState.owned_skins.push(data.unlocked_skin);
 
+                    if (data.newly_unlocked && data.newly_unlocked.length > 0) {
+                        data.newly_unlocked.forEach(ach => {
+                            if (!OriaState.achievements) OriaState.achievements = [];
+                            if (!OriaState.achievements.includes(ach)) {
+                                OriaState.achievements.push(ach);
+                            }
+                            showAchievementBanner(ach);
+                        });
+                    }
+
                     const wonSkinObj = storeItems.find(s => s.id === data.unlocked_skin);
                     if (wonSkinObj) imgEl.src = wonSkinObj.image;
 
@@ -711,18 +747,137 @@ window.showDashboard = function (e) {
     if (e) e.preventDefault();
     document.getElementById('dashboard-view').classList.remove('d-none');
     document.getElementById('profile-view').classList.add('d-none');
+    document.getElementById('stats-view').classList.add('d-none');
     document.getElementById('header-gamification-stats').classList.remove('d-none');
     document.getElementById('nav-btn-home').classList.add('active');
     document.getElementById('nav-btn-profile').classList.remove('active');
+    document.getElementById('nav-btn-stats').classList.remove('active');
 };
+
+export function showAchievementBanner(id) {
+    const titles = {
+        'initiate': { title: 'Initiate', icon: '🔰', desc: 'Completed your first quest!' },
+        'on_fire': { title: 'On Fire', icon: '🔥', desc: 'Achieved a 3-Day streak!' },
+        'cyber_spender': { title: 'Cyber Spender', icon: '💸', desc: 'Bought your first skin!' }
+    };
+
+    const ach = titles[id];
+    if (!ach) return;
+
+    const toast = document.getElementById('achievement-toast');
+    if (!toast) return;
+
+    document.getElementById('toast-icon').textContent = ach.icon;
+    document.getElementById('toast-title').textContent = 'Achievement Unlocked: ' + ach.title;
+    document.getElementById('toast-desc').textContent = ach.desc;
+
+    toast.classList.remove('toast-hidden');
+    toast.classList.add('toast-visible');
+
+    if (window.OriaAudio) {
+        window.OriaAudio.playSuccess();
+    }
+
+    setTimeout(() => {
+        toast.classList.remove('toast-visible');
+        toast.classList.add('toast-hidden');
+    }, 4000);
+}
+
+window.showStats = function (e) {
+    if (e) e.preventDefault();
+    document.getElementById('dashboard-view').classList.add('d-none');
+    document.getElementById('profile-view').classList.add('d-none');
+    document.getElementById('stats-view').classList.remove('d-none');
+    document.getElementById('header-gamification-stats').classList.add('d-none');
+    document.getElementById('nav-btn-home').classList.remove('active');
+    document.getElementById('nav-btn-profile').classList.remove('active');
+    document.getElementById('nav-btn-stats').classList.add('active');
+
+    // Update Achievement Badges
+    const badgeIds = {
+        'initiate': 'badge-initiate',
+        'on_fire': 'badge-on-fire',
+        'cyber_spender': 'badge-cyber-spender'
+    };
+
+    for (const [achId, domId] of Object.entries(badgeIds)) {
+        const el = document.getElementById(domId);
+        if (!el) continue;
+
+        if (OriaState && OriaState.achievements && OriaState.achievements.includes(achId)) {
+            el.classList.remove('badge-locked');
+            el.classList.add('badge-unlocked');
+        } else {
+            el.classList.remove('badge-unlocked');
+            el.classList.add('badge-locked');
+        }
+    }
+
+    renderLeaderboard();
+};
+
+async function renderLeaderboard() {
+    const listContainer = document.getElementById('leaderboard-list-container');
+    if (!listContainer) return;
+
+    listContainer.innerHTML = '<div class="text-center p-3"><small class="text-muted">Loading hackers...</small></div>';
+
+    try {
+        const data = await fetchLeaderboardAPI();
+        if (data.leaderboard) {
+            listContainer.innerHTML = '';
+            data.leaderboard.forEach((user, index) => {
+                const isCurrentUser = user.is_current_user;
+                const rowBlock = document.createElement('div');
+
+                // Add specific styling for current user
+                if (isCurrentUser) {
+                    rowBlock.className = 'list-group-item d-flex justify-content-between align-items-center p-3 current-user-row';
+                    rowBlock.style.background = 'rgba(137, 175, 240, 0.1)';
+                    rowBlock.style.borderBottom = '1px solid var(--glass-border-solid)';
+                } else {
+                    rowBlock.className = 'list-group-item d-flex justify-content-between align-items-center p-3 other-user-row';
+                    rowBlock.style.background = 'transparent';
+                    rowBlock.style.borderBottom = '1px solid var(--glass-border-solid)';
+                }
+
+                const rankClass = index === 0 ? 'text-warning' : (index === 1 ? 'text-secondary' : (index === 2 ? 'text-success' : 'text-muted'));
+                const nameClass = isCurrentUser ? 'text-primary' : 'text-main';
+
+                rowBlock.innerHTML = `
+                    <div class="d-flex align-items-center gap-3">
+                        <span class="fs-4 fw-bold ${rankClass}">${index + 1}</span>
+                        <div>
+                            <h6 class="mb-0 fw-bold ${nameClass}">${user.username}${isCurrentUser ? ' (You)' : ''}</h6>
+                            <small class="${isCurrentUser ? 'text-primary' : 'text-muted'}">Lvl ${user.level} • ${user.xp} XP •  🔥 ${user.current_streak || 0} Days</small>
+                        </div>
+                    </div>
+                `;
+                listContainer.appendChild(rowBlock);
+            });
+        }
+    } catch (err) {
+        listContainer.innerHTML = '<div class="text-center p-3 text-danger"><small>Failed to load leaderboard.</small></div>';
+        console.error("Leaderboard Error:", err);
+    }
+}
 
 window.showProfile = function (e) {
     if (e) e.preventDefault();
     document.getElementById('dashboard-view').classList.add('d-none');
+    document.getElementById('stats-view').classList.add('d-none');
     document.getElementById('profile-view').classList.remove('d-none');
     document.getElementById('header-gamification-stats').classList.add('d-none');
     document.getElementById('nav-btn-home').classList.remove('active');
+    document.getElementById('nav-btn-stats').classList.remove('active');
     document.getElementById('nav-btn-profile').classList.add('active');
     renderInventory();
     renderProfileQuests();
 };
+
+window.addEventListener('achievementUnlocked', (e) => {
+    if (e.detail && e.detail.id) {
+        showAchievementBanner(e.detail.id);
+    }
+});

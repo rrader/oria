@@ -18,6 +18,9 @@ class User(db.Model):
     equipped_skin = db.Column(db.String(50), default='default')
     daily_quests = db.Column(db.Text, default='[]')
     last_daily_date = db.Column(db.String(20), default='')
+    current_streak = db.Column(db.Integer, default=0)
+    last_active_date = db.Column(db.String(20), default='')
+    achievements = db.Column(db.Text, default='[]')
 
     def __init__(self, username, email, password, pronouns=""):
         self.username = username
@@ -33,6 +36,9 @@ class User(db.Model):
         self.equipped_skin = 'default'
         self.daily_quests = '[]'
         self.last_daily_date = ''
+        self.current_streak = 0
+        self.last_active_date = ''
+        self.achievements = '[]'
 
     def get_chat_history(self):
         try:
@@ -69,6 +75,15 @@ class User(db.Model):
 
     def set_owned_skins(self, skins_list):
         self.owned_skins = json.dumps(skins_list)
+
+    def get_achievements(self):
+        try:
+            return json.loads(self.achievements)
+        except Exception:
+            return []
+
+    def set_achievements(self, achievements_list):
+        self.achievements = json.dumps(achievements_list)
 
     def __repr__(self):
         return f'<User {self.username}>'
