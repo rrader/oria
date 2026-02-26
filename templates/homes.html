@@ -37,14 +37,14 @@
         </div>
         <div class="progress mb-1 mx-auto w-100"
             style="height: 8px; max-width: 300px; border-radius: 10px; background: rgba(0,0,0,0.05); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1);">
-            <div id="user-xp-bar" class="progress-bar" role="progressbar"
-                style="width: {{ user.xp }}%; background: var(--accent-pink);" aria-valuenow="{{ user.xp }}"
-                aria-valuemin="0" aria-valuemax="100"></div>
+            <div id="user-xp-bar" class="progress-bar" role="progressbar" style="background: var(--accent-pink);"
+                aria-valuenow="{{ user.xp }}" aria-valuemin="0" aria-valuemax="100" data-xp="{{ user.xp }}"></div>
         </div>
     </div>
 </header>
 
-<main class="container px-4 py-3 text-center flex-grow-1 d-flex flex-column" style="min-height: 0;">
+<main class="container px-4 py-3 text-center flex-grow-1 d-flex flex-column"
+    style="min-height: 0; max-width: 1000px; margin: 0 auto;">
     <!-- DASHBOARD VIEW -->
     <div id="dashboard-view" class="flex-grow-1" style="min-height: 0;">
 
@@ -65,71 +65,81 @@
             </div>
         </div>
 
-        <!-- Daily Quests Container -->
-        <div class="glass-card text-start mb-4 p-4" style="border-left: 4px solid var(--accent-pink);">
-            <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between"
-                style="color: var(--text-main); cursor: pointer;" data-bs-toggle="collapse"
-                data-bs-target="#dailyQuestsCollapseContainer" aria-expanded="true"
-                aria-controls="dailyQuestsCollapseContainer">
-                <span class="d-flex align-items-center">
-                    <svg class="me-2 text-warning" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polyline points="12 6 12 12 16 14"></polyline>
-                    </svg>
-                    Daily Quests
-                </span>
-                <span class="d-flex align-items-center">
-                    <button
-                        class="btn btn-sm btn-light rounded-circle shadow-sm me-2 d-flex align-items-center justify-content-center"
-                        id="refresh-daily-quests" title="Refresh Daily Tasks"
-                        style="width: 28px; height: 28px; padding: 0;" aria-label="Refresh daily tasks"
-                        onclick="event.stopPropagation(); window.refreshDailyQuests(this);">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"
-                            class="text-secondary">
-                            <polyline points="23 4 23 10 17 10"></polyline>
-                            <polyline points="1 20 1 14 7 14"></polyline>
-                            <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path>
-                        </svg>
-                    </button>
-                    <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
-                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                </span>
-            </h5>
-            <div class="collapse show" id="dailyQuestsCollapseContainer">
-                <div id="daily-quests-container" class="d-flex flex-column gap-2 mt-2">
-                    <!-- Daily quests injected by JS -->
-                    <p class="text-muted small my-1">Loading daily tasks...</p>
+        <div class="row text-start align-items-start">
+            <div class="col-lg-6 mb-4">
+                <!-- Daily Quests Container -->
+                <div class="glass-card p-4 h-100" style="border-left: 4px solid var(--accent-pink);">
+                    <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between"
+                        style="color: var(--text-main); cursor: pointer;" data-bs-toggle="collapse"
+                        data-bs-target="#dailyQuestsCollapseContainer" aria-expanded="true"
+                        aria-controls="dailyQuestsCollapseContainer">
+                        <span class="d-flex align-items-center">
+                            <svg class="me-2 text-warning" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            Daily Quests
+                        </span>
+                        <span class="d-flex align-items-center">
+                            <button
+                                class="btn btn-sm btn-light rounded-circle shadow-sm me-2 d-flex align-items-center justify-content-center"
+                                id="refresh-daily-quests" title="Refresh Daily Tasks"
+                                style="width: 28px; height: 28px; padding: 0;" aria-label="Refresh daily tasks"
+                                onclick="event.stopPropagation(); window.refreshDailyQuests(this);">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                                    stroke-linejoin="round" class="text-secondary">
+                                    <polyline points="23 4 23 10 17 10"></polyline>
+                                    <polyline points="1 20 1 14 7 14"></polyline>
+                                    <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15">
+                                    </path>
+                                </svg>
+                            </button>
+                            <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" stroke-linejoin="round">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </span>
+                    </h5>
+                    <div class="collapse show" id="dailyQuestsCollapseContainer">
+                        <div id="daily-quests-container" class="d-flex flex-column gap-2 mt-2">
+                            <!-- Daily quests injected by JS -->
+                            <p class="text-muted small my-1">Loading daily tasks...</p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Main Quests Container -->
-        <div class="glass-card text-start mb-4 p-4">
-            <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between"
-                style="color: var(--text-main); cursor: pointer;" data-bs-toggle="collapse"
-                data-bs-target="#questsCollapseContainer" aria-expanded="false" aria-controls="questsCollapseContainer">
-                <span class="d-flex align-items-center">
-                    <img src="/static/img/star-icon.svg" width="20" height="20" class="me-2" alt="Star"
-                        style="vertical-align: middle; margin-top: -3px;">
-                    Active Quests
-                </span>
-                <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                    fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                </svg>
-            </h5>
-            <div class="collapse" id="questsCollapseContainer">
-                <div id="quests-container" class="d-flex flex-column gap-3">
-                    <!-- Quests injected by JS -->
-                    <p class="text-muted small text-center my-3" id="no-quests-msg">No quests yet. Ask ORIA or use Quick
-                        Quest!
-                    </p>
+            <div class="col-lg-6 mb-4">
+                <!-- Main Quests Container -->
+                <div class="glass-card p-4 h-100">
+                    <h5 class="fw-bold mb-3 d-flex align-items-center justify-content-between"
+                        style="color: var(--text-main); cursor: pointer;" data-bs-toggle="collapse"
+                        data-bs-target="#questsCollapseContainer" aria-expanded="false"
+                        aria-controls="questsCollapseContainer">
+                        <span class="d-flex align-items-center">
+                            <img src="/static/img/star-icon.svg" width="20" height="20" class="me-2" alt="Star"
+                                style="vertical-align: middle; margin-top: -3px;">
+                            Active Quests
+                        </span>
+                        <svg class="chevron-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </h5>
+                    <div class="collapse" id="questsCollapseContainer">
+                        <div id="quests-container" class="d-flex flex-column gap-3">
+                            <!-- Quests injected by JS -->
+                            <p class="text-muted small text-center my-3" id="no-quests-msg">No quests yet. Ask ORIA or
+                                use Quick
+                                Quest!
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -139,79 +149,90 @@
     <div id="profile-view" class="d-none flex-grow-1 text-start" style="padding-bottom: 20px; min-height: 0;">
         <h2 class="fw-bold mb-4 text-center mt-2">{{ user.username }}'s Profile</h2>
 
-        <!-- Stats Card -->
-        <div class="glass-card p-4 mb-4">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <span class="fs-5 fw-bold text-primary">Level <span id="profile-level">{{ user.level }}</span></span>
-                <span
-                    class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-2 fs-6 shadow-sm border border-warning"><img
-                        src="/static/img/star-icon.svg" width="18" height="18" alt="Star"
-                        style="vertical-align: middle; margin-top: -3px;">
-                    <span id="profile-coins">{{ user.coins }}</span></span>
-            </div>
-            <div class="progress" style="height: 12px; border-radius: 10px; background: rgba(0,0,0,0.05);">
-                <div id="profile-xp-bar" class="progress-bar progress-bar-striped progress-bar-animated"
-                    role="progressbar" style="width: {{ user.xp }}%; background: var(--accent-pink);"></div>
-            </div>
-            <div class="text-end mt-1 small text-muted fw-bold"><span id="profile-xp-text">{{ user.xp }}</span>/100 XP
-            </div>
-        </div>
+        <div class="row text-start align-items-start">
+            <div class="col-lg-5 mb-4">
+                <!-- Stats Card -->
+                <div class="glass-card p-4 mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="fs-5 fw-bold text-primary">Level <span id="profile-level">{{ user.level
+                                }}</span></span>
+                        <span
+                            class="badge bg-warning text-dark fw-bold rounded-pill px-3 py-2 fs-6 shadow-sm border border-warning"><img
+                                src="/static/img/star-icon.svg" width="18" height="18" alt="Star"
+                                style="vertical-align: middle; margin-top: -3px;">
+                            <span id="profile-coins">{{ user.coins }}</span></span>
+                    </div>
+                    <div class="progress" style="height: 12px; border-radius: 10px; background: rgba(0,0,0,0.05);">
+                        <div id="profile-xp-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                            role="progressbar" style="background: var(--accent-pink);" data-xp="{{ user.xp }}"></div>
+                    </div>
+                    <div class="text-end mt-1 small text-muted fw-bold"><span id="profile-xp-text">{{ user.xp
+                            }}</span>/100 XP
+                    </div>
+                </div>
 
-        <!-- Skin Roulette -->
-        <h4 class="fw-bold mt-4 mb-3 d-flex align-items-center">
-            <svg class="me-2" style="color: var(--accent-pink);" xmlns="http://www.w3.org/2000/svg" width="24"
-                height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="m15.8 9.5-3.3-3.3"></path>
-                <path d="m9.5 8.2 3.3-3.3"></path>
-                <path d="m8.2 14.5-3.3 3.3"></path>
-                <path d="m14.5 15.8 3.3 3.3"></path>
-                <circle cx="12" cy="12" r="2"></circle>
-            </svg>
-            Skin Roulette
-        </h4>
-        <div class="glass-card mb-4 p-4 text-center"
-            style="border: 2px solid var(--accent-blue); background: var(--card-bg);">
-            <div id="roulette-window"
-                class="mx-auto overflow-hidden d-flex justify-content-center align-items-center bg-white shadow-sm mb-3"
-                style="width: 120px; height: 120px; border-radius: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.1) !important;">
-                <img src="/static/img/IMG_8435.PNG" id="roulette-display-img" alt="?"
-                    style="width: 100px; height: 100px; object-fit: contain; filter: brightness(0) invert(0.8);">
+                <!-- Skin Roulette -->
+                <h4 class="fw-bold mt-4 mb-3 d-flex align-items-center">
+                    <svg class="me-2" style="color: var(--accent-pink);" xmlns="http://www.w3.org/2000/svg" width="24"
+                        height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                        stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="m15.8 9.5-3.3-3.3"></path>
+                        <path d="m9.5 8.2 3.3-3.3"></path>
+                        <path d="m8.2 14.5-3.3 3.3"></path>
+                        <path d="m14.5 15.8 3.3 3.3"></path>
+                        <circle cx="12" cy="12" r="2"></circle>
+                    </svg>
+                    Skin Roulette
+                </h4>
+                <div class="glass-card mb-4 p-4 text-center"
+                    style="border: 2px solid var(--accent-blue); background: var(--card-bg);">
+                    <div id="roulette-window"
+                        class="mx-auto overflow-hidden d-flex justify-content-center align-items-center bg-white shadow-sm mb-3"
+                        style="width: 120px; height: 120px; border-radius: 20px; box-shadow: inset 0 2px 10px rgba(0,0,0,0.1) !important;">
+                        <img src="/static/img/IMG_8435.PNG" id="roulette-display-img" alt="?"
+                            style="width: 100px; height: 100px; object-fit: contain; filter: brightness(0) invert(0.8);">
+                    </div>
+                    <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="btn-spin-roulette"
+                        onclick="window.spinRoulette(100)">
+                        SPIN (<img src="/static/img/star-icon.svg" width="18" height="18" alt="Star"
+                            style="vertical-align: middle; margin-top: -3px;"> 100)
+                    </button>
+                    <p id="roulette-msg" class="text-muted small mt-2 mb-0 fw-bold"></p>
+                </div>
             </div>
-            <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" id="btn-spin-roulette"
-                onclick="window.spinRoulette(100)">
-                SPIN (<img src="/static/img/star-icon.svg" width="18" height="18" alt="Star"
-                    style="vertical-align: middle; margin-top: -3px;"> 100)
-            </button>
-            <p id="roulette-msg" class="text-muted small mt-2 mb-0 fw-bold"></p>
-        </div>
 
-        <!-- My Skins Inventory -->
-        <h4 class="fw-bold mt-4 mb-3 d-flex align-items-center">
-            <svg class="me-2 text-warning" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                <circle cx="12" cy="7" r="4"></circle>
-            </svg>
-            My Skins
-        </h4>
-        <div id="inventory-grid" class="store-grid-container mb-4">
-            <!-- Owned skins injected by JS -->
-        </div>
+            <div class="col-lg-7 mb-4">
+                <!-- My Skins Inventory -->
+                <h4 class="fw-bold mt-lg-0 mt-4 mb-3 d-flex align-items-center">
+                    <svg class="me-2 text-warning" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    My Skins
+                </h4>
+                <div id="inventory-grid" class="store-grid-container mb-4">
+                    <!-- Owned skins injected by JS -->
+                </div>
 
-        <!-- Completed Quests Archive -->
-        <h4 class="fw-bold mt-4 mb-3 d-flex align-items-center">
-            <svg class="me-2 text-success" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                <polyline points="22 4 12 14.01 9 11.01" />
-            </svg>
-            Completed Quests
-        </h4>
-        <div id="completed-quests-container" class="d-flex flex-column gap-3">
-            <p class="text-muted small text-center my-3 fw-bold" id="no-completed-quests-msg">No completed quests yet.
-            </p>
+                <!-- Completed Quests Archive -->
+                <h4 class="fw-bold mt-4 mb-3 d-flex align-items-center">
+                    <svg class="me-2 text-success" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                        <polyline points="22 4 12 14.01 9 11.01" />
+                    </svg>
+                    Completed Quests
+                </h4>
+                <div id="completed-quests-container" class="d-flex flex-column gap-3">
+                    <p class="text-muted small text-center my-3 fw-bold" id="no-completed-quests-msg">No completed
+                        quests yet.
+                    </p>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -219,65 +240,74 @@
     <div id="stats-view" class="d-none flex-grow-1 text-start" style="padding-bottom: 20px; min-height: 0;">
         <h2 class="fw-bold mb-4 text-center mt-2">Stats & Leaderboard</h2>
 
-        <!-- Streak & Level Banner -->
-        <div class="glass-card p-4 mb-4 text-center"
-            style="background: var(--card-bg-solid); border: 2px solid var(--accent-pink);">
-            <div class="d-flex align-items-center justify-content-evenly">
-                <div class="pe-3 border-end border-muted" style="flex: 1;">
-                    <h1 class="display-4 fw-bold text-primary mb-0" id="stats-level">{{ user.level }}</h1>
-                    <span class="text-muted small fw-semibold text-uppercase">Current Level</span>
+        <div class="row text-start align-items-start">
+            <div class="col-lg-5 mb-4">
+                <!-- Streak & Level Banner -->
+                <div class="glass-card p-4 mb-4 text-center"
+                    style="background: var(--card-bg-solid); border: 2px solid var(--accent-pink);">
+                    <div class="d-flex align-items-center justify-content-evenly">
+                        <div class="pe-3 border-end border-muted" style="flex: 1;">
+                            <h1 class="display-4 fw-bold text-primary mb-0" id="stats-level">{{ user.level }}</h1>
+                            <span class="text-muted small fw-semibold text-uppercase">Current Level</span>
+                        </div>
+                        <div class="ps-3" style="flex: 1;">
+                            <h1
+                                class="display-4 fw-bold text-warning mb-0 d-flex justify-content-center align-items-center gap-2">
+                                <span id="stats-streak">{{ user.current_streak }}</span>
+                                <span style="font-size: 0.8em; margin-top:-5px;">🔥</span>
+                            </h1>
+                            <span class="text-muted small fw-semibold text-uppercase">Day Streak</span>
+                        </div>
+                    </div>
                 </div>
-                <div class="ps-3" style="flex: 1;">
-                    <h1
-                        class="display-4 fw-bold text-warning mb-0 d-flex justify-content-center align-items-center gap-2">
-                        <span id="stats-streak">{{ user.current_streak }}</span>
-                        <span style="font-size: 0.8em; margin-top:-5px;">🔥</span>
-                    </h1>
-                    <span class="text-muted small fw-semibold text-uppercase">Day Streak</span>
+
+                <!-- Achievements Grid -->
+                <h4 class="fw-bold mt-4 mb-1 d-flex align-items-center">
+                    <svg class="me-2 text-primary" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    Achievements
+                </h4>
+                <p class="text-muted small mb-3">Complete daily missions and buy skins to unlock these badges.</p>
+                <div class="badge-grid mb-4">
+                    <div class="badge-card badge-locked text-center" id="badge-initiate">
+                        <div class="badge-icon mb-2">🔰</div>
+                        <h6 class="fw-bold mb-1">Initiate</h6>
+                        <small class="text-muted" style="font-size: 0.75rem;">Complete 1 Quest</small>
+                    </div>
+                    <div class="badge-card badge-locked text-center" id="badge-on-fire">
+                        <div class="badge-icon mb-2">🔥</div>
+                        <h6 class="fw-bold mb-1">On Fire</h6>
+                        <small class="text-muted" style="font-size: 0.75rem;">3-Day Streak</small>
+                    </div>
+                    <div class="badge-card badge-locked text-center" id="badge-cyber-spender">
+                        <div class="badge-icon mb-2">💸</div>
+                        <h6 class="fw-bold mb-1">Cyber Spender</h6>
+                        <small class="text-muted" style="font-size: 0.75rem;">Buy a Skin</small>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Achievements Grid -->
-        <h4 class="fw-bold mt-4 mb-1 d-flex align-items-center">
-            <svg class="me-2 text-primary" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-            </svg>
-            Achievements
-        </h4>
-        <p class="text-muted small mb-3">Complete daily missions and buy skins to unlock these badges.</p>
-        <div class="badge-grid mb-4">
-            <div class="badge-card badge-locked text-center" id="badge-initiate">
-                <div class="badge-icon mb-2">🔰</div>
-                <h6 class="fw-bold mb-1">Initiate</h6>
-                <small class="text-muted" style="font-size: 0.75rem;">Complete 1 Quest</small>
-            </div>
-            <div class="badge-card badge-locked text-center" id="badge-on-fire">
-                <div class="badge-icon mb-2">🔥</div>
-                <h6 class="fw-bold mb-1">On Fire</h6>
-                <small class="text-muted" style="font-size: 0.75rem;">3-Day Streak</small>
-            </div>
-            <div class="badge-card badge-locked text-center" id="badge-cyber-spender">
-                <div class="badge-icon mb-2">💸</div>
-                <h6 class="fw-bold mb-1">Cyber Spender</h6>
-                <small class="text-muted" style="font-size: 0.75rem;">Buy a Skin</small>
-            </div>
-        </div>
-
-        <!-- Leaderboard Mockup -->
-        <h4 class="fw-bold mt-4 mb-3 d-flex align-items-center">
-            <svg class="me-2 text-warning" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
-                </path>
-            </svg>
-            👑 Global XP Rank
-        </h4>
-        <div class="glass-card mb-4 p-0 overflow-hidden text-start">
-            <div class="list-group list-group-flush leaderboard-list" id="leaderboard-list-container">
-                <!-- JS Inject dynamic hackers -->
+            <div class="col-lg-7 mb-4">
+                <!-- Leaderboard Mockup -->
+                <h4 class="fw-bold mt-lg-0 mt-4 mb-3 d-flex align-items-center">
+                    <svg class="me-2 text-warning" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path
+                            d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z">
+                        </path>
+                    </svg>
+                    👑 Global XP Rank
+                </h4>
+                <div class="glass-card mb-4 p-0 overflow-hidden text-start">
+                    <div class="list-group list-group-flush leaderboard-list" id="leaderboard-list-container">
+                        <!-- JS Inject dynamic hackers -->
+                    </div>
+                </div>
             </div>
         </div>
     </div>

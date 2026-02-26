@@ -111,15 +111,21 @@ export function updateDOMState() {
     const profXpText = document.getElementById('profile-xp-text');
 
     if (xpBar) {
-        xpBar.style.width = OriaState.xp + '%';
-        xpBar.setAttribute('aria-valuenow', OriaState.xp);
+        const fallbackXp = xpBar.getAttribute('data-xp') || 0;
+        const currentXp = window.OriaState ? OriaState.xp : fallbackXp;
+        xpBar.style.width = currentXp + '%';
+        xpBar.setAttribute('aria-valuenow', currentXp);
     }
     if (levelEl) levelEl.textContent = OriaState.level;
     if (coinsEl) coinsEl.textContent = OriaState.coins;
 
     if (profLevelEl) profLevelEl.textContent = OriaState.level;
     if (profCoinsEl) profCoinsEl.textContent = OriaState.coins;
-    if (profXpBar) profXpBar.style.width = OriaState.xp + '%';
+    if (profXpBar) {
+        const fallbackXp = profXpBar.getAttribute('data-xp') || 0;
+        const currentXp = window.OriaState ? OriaState.xp : fallbackXp;
+        profXpBar.style.width = currentXp + '%';
+    }
     if (profXpText) profXpText.textContent = OriaState.xp;
 
     updateGlobalMascot();

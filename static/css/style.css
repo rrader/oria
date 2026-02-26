@@ -178,12 +178,13 @@ body {
 }
 
 #app-container {
-  max-width: 480px;
+  max-width: 2000px;
   margin: 0 auto;
   height: 100vh;
   height: 100dvh;
   background: var(--bg-color);
-  box-shadow: 0 0 40px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 0 40px rgba(0, 0, 0, 0.05);
+  /* Slight shadow to frame the app beautifully on wide screens */
   position: relative;
   display: flex;
   flex-direction: column;
