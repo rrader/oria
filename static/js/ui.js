@@ -1,8 +1,19 @@
 import { OriaState, storeItems } from './state.js';
 import {
-    saveStateAPI, refreshDailyQuestsAPI, generateQuizAPI, explainQuizAPI,
+    saveStateAPI, awardXPActionAPI, claimRewardAPI,
+    refreshDailyQuestsAPI, generateQuizAPI, explainQuizAPI,
     spinRouletteAPI, equipSkinAPI, fetchLeaderboardAPI
 } from './api.js';
+
+/**
+ * Returns the title earned at a given level. Empty string = no title yet.
+ */
+export function getUserTitle(level) {
+    if (level >= 20) return 'System Overlord';
+    if (level >= 10) return 'Neural Hacker';
+    if (level >= 5) return 'Cyber Initiate';
+    return '';
+}
 
 class AudioPlayer {
     constructor() {
@@ -110,11 +121,12 @@ export function updateDOMState() {
     const profXpBar = document.getElementById('profile-xp-bar');
     const profXpText = document.getElementById('profile-xp-text');
 
+    // XP percentage within the current level (0-99 out of 100 = 0%-99%)
+    const xpPct = Math.min(100, Math.max(0, (OriaState.xp / 100) * 100));
+
     if (xpBar) {
-        const fallbackXp = xpBar.getAttribute('data-xp') || 0;
-        const currentXp = window.OriaState ? OriaState.xp : fallbackXp;
-        xpBar.style.width = currentXp + '%';
-        xpBar.setAttribute('aria-valuenow', currentXp);
+        xpBar.style.width = xpPct + '%';
+        xpBar.setAttribute('aria-valuenow', OriaState.xp);
     }
     if (levelEl) levelEl.textContent = OriaState.level;
     if (coinsEl) coinsEl.textContent = OriaState.coins;
@@ -122,38 +134,54 @@ export function updateDOMState() {
     if (profLevelEl) profLevelEl.textContent = OriaState.level;
     if (profCoinsEl) profCoinsEl.textContent = OriaState.coins;
     if (profXpBar) {
-        const fallbackXp = profXpBar.getAttribute('data-xp') || 0;
-        const currentXp = window.OriaState ? OriaState.xp : fallbackXp;
-        profXpBar.style.width = currentXp + '%';
+        profXpBar.style.width = xpPct + '%';
+        profXpBar.setAttribute('aria-valuenow', OriaState.xp);
     }
     if (profXpText) profXpText.textContent = OriaState.xp;
+
+    // Also refresh the rewards-level display if visible
+    const rewardsLevelEl = document.getElementById('rewards-current-level');
+    if (rewardsLevelEl) rewardsLevelEl.textContent = OriaState.level;
 
     updateGlobalMascot();
 }
 
-export function addXP(amount) {
+export async function addXP(amount) {
+    // Optimistic update for instant UI feedback
     OriaState.xp += amount;
     OriaState.coins += Math.floor(amount / 2);
-
-    if (OriaState.xp >= 100) {
-        OriaAudio.playLevelUp();
+    const tentativeLevelUp = OriaState.xp >= 100;
+    if (tentativeLevelUp) {
         OriaState.level += Math.floor(OriaState.xp / 100);
         OriaState.xp = OriaState.xp % 100;
+    }
+    updateDOMState();
 
-        const newLevelEl = document.getElementById('newLevelText');
-        if (newLevelEl) {
-            newLevelEl.textContent = OriaState.level;
-            const levelModalEl = document.getElementById('levelUpModal');
-            if (window.bootstrap) {
-                let levelModal = window.bootstrap.Modal.getInstance(levelModalEl);
-                if (!levelModal) levelModal = new window.bootstrap.Modal(levelModalEl);
-                levelModal.show();
+    // Server is the authority — sync back the real values
+    try {
+        const data = await awardXPActionAPI(amount);
+        // Overwrite local state with authoritative server values
+        OriaState.xp = data.xp;
+        OriaState.coins = data.coins;
+        OriaState.level = data.level;
+        updateDOMState();
+
+        if (data.leveled_up) {
+            OriaAudio.playLevelUp();
+            const newLevelEl = document.getElementById('newLevelText');
+            if (newLevelEl) {
+                newLevelEl.textContent = data.new_level;
+                const levelModalEl = document.getElementById('levelUpModal');
+                if (window.bootstrap) {
+                    let levelModal = window.bootstrap.Modal.getInstance(levelModalEl);
+                    if (!levelModal) levelModal = new window.bootstrap.Modal(levelModalEl);
+                    levelModal.show();
+                }
             }
         }
+    } catch (err) {
+        console.error('Failed to sync XP with server — UI may be ahead of DB:', err);
     }
-
-    updateDOMState();
-    saveStateAPI();
 }
 
 export function renderQuests() {
@@ -257,22 +285,37 @@ export function renderDailyQuests() {
     });
 }
 
-function completeDailyQuest(questId, itemElement) {
+async function completeDailyQuest(questId, itemElement) {
     const dailyQuests = OriaState.daily_quests;
     const questIndex = dailyQuests.findIndex(q => q.id === questId);
 
-    if (questIndex > -1 && !dailyQuests[questIndex].completed) {
-        OriaAudio.playSuccess();
-        const label = itemElement.querySelector('.daily-task-label');
-        label.classList.remove('text-dark', 'fw-semibold');
-        label.classList.add('text-muted', 'text-decoration-line-through');
+    if (questIndex === -1 || dailyQuests[questIndex].completed) return;
 
-        setTimeout(() => {
-            dailyQuests[questIndex].completed = true;
-            addXP(dailyQuests[questIndex].xp_reward);
-            renderDailyQuests();
-        }, 400);
+    // Prevent double-clicks during async save
+    itemElement.classList.add('processing-complete');
+    OriaAudio.playSuccess();
+
+    const label = itemElement.querySelector('.daily-task-label');
+    label.classList.remove('text-dark', 'fw-semibold');
+    label.classList.add('text-muted', 'text-decoration-line-through');
+
+    const xpReward = dailyQuests[questIndex].xp_reward;
+
+    // Mark complete in local state
+    dailyQuests[questIndex].completed = true;
+
+    try {
+        // RACE CONDITION FIX: persist completion to backend FIRST,
+        // then award XP only after the server confirms the save.
+        await saveStateAPI();
+        await addXP(xpReward);
+    } catch (err) {
+        // Revert local state if either save fails
+        console.error('Failed to save daily quest completion:', err);
+        dailyQuests[questIndex].completed = false;
     }
+
+    renderDailyQuests();
 }
 
 export function refreshDailyQuestsHandler(btnElement) {
@@ -651,6 +694,17 @@ export function renderInventory() {
 let isSpinning = false;
 export function spinRouletteHandler(cost) {
     if (isSpinning) return;
+
+    // ── Lv3 gate (frontend) ────────────────────────────────────────────────
+    if (OriaState.level < 3) {
+        const msgEl = document.getElementById('roulette-msg');
+        if (msgEl) {
+            msgEl.textContent = '🔒 Roulette unlocks at Level 3!';
+            msgEl.className = 'text-warning small mt-2 mb-0 fw-bold';
+        }
+        return;
+    }
+
     if (OriaState.coins < cost) {
         alert('Not enough coins to spin!');
         return;
@@ -754,10 +808,12 @@ window.showDashboard = function (e) {
     document.getElementById('dashboard-view').classList.remove('d-none');
     document.getElementById('profile-view').classList.add('d-none');
     document.getElementById('stats-view').classList.add('d-none');
+    document.getElementById('rewards-view').classList.add('d-none');
     document.getElementById('header-gamification-stats').classList.remove('d-none');
     document.getElementById('nav-btn-home').classList.add('active');
     document.getElementById('nav-btn-profile').classList.remove('active');
     document.getElementById('nav-btn-stats').classList.remove('active');
+    document.getElementById('nav-btn-rewards').classList.remove('active');
 };
 
 export function showAchievementBanner(id) {
@@ -795,10 +851,12 @@ window.showStats = function (e) {
     document.getElementById('dashboard-view').classList.add('d-none');
     document.getElementById('profile-view').classList.add('d-none');
     document.getElementById('stats-view').classList.remove('d-none');
+    document.getElementById('rewards-view').classList.add('d-none');
     document.getElementById('header-gamification-stats').classList.add('d-none');
     document.getElementById('nav-btn-home').classList.remove('active');
     document.getElementById('nav-btn-profile').classList.remove('active');
     document.getElementById('nav-btn-stats').classList.add('active');
+    document.getElementById('nav-btn-rewards').classList.remove('active');
 
     // Update Achievement Badges
     const badgeIds = {
@@ -850,12 +908,17 @@ async function renderLeaderboard() {
 
                 const rankClass = index === 0 ? 'text-warning' : (index === 1 ? 'text-secondary' : (index === 2 ? 'text-success' : 'text-muted'));
                 const nameClass = isCurrentUser ? 'text-primary' : 'text-main';
+                // Use the title the user has explicitly equipped (from backend)
+                const title = user.equipped_title || '';
+                const titleHtml = title
+                    ? `<span class="badge rounded-pill ms-1 fw-bold" style="background: var(--primary-gradient); font-size: 0.7rem;">${title}</span>`
+                    : '';
 
                 rowBlock.innerHTML = `
                     <div class="d-flex align-items-center gap-3">
                         <span class="fs-4 fw-bold ${rankClass}">${index + 1}</span>
                         <div>
-                            <h6 class="mb-0 fw-bold ${nameClass}">${user.username}${isCurrentUser ? ' (You)' : ''}</h6>
+                            <h6 class="mb-0 fw-bold ${nameClass} d-flex align-items-center gap-1">${user.username}${isCurrentUser ? ' (You)' : ''} ${title ? `<span class="badge rounded-pill fw-bold leaderboard-title-badge ${isCurrentUser ? 'leaderboard-current-user-title' : ''}" style="background: var(--primary-gradient); font-size: 0.68rem; vertical-align: middle;">${title}</span>` : (isCurrentUser ? `<span class="leaderboard-current-user-title" style="display:none;"></span>` : '')}</h6>
                             <small class="${isCurrentUser ? 'text-primary' : 'text-muted'}">Lvl ${user.level} • ${user.xp} XP •  🔥 ${user.current_streak || 0} Days</small>
                         </div>
                     </div>
@@ -873,13 +936,172 @@ window.showProfile = function (e) {
     if (e) e.preventDefault();
     document.getElementById('dashboard-view').classList.add('d-none');
     document.getElementById('stats-view').classList.add('d-none');
+    document.getElementById('rewards-view').classList.add('d-none');
     document.getElementById('profile-view').classList.remove('d-none');
     document.getElementById('header-gamification-stats').classList.add('d-none');
     document.getElementById('nav-btn-home').classList.remove('active');
     document.getElementById('nav-btn-stats').classList.remove('active');
+    document.getElementById('nav-btn-rewards').classList.remove('active');
     document.getElementById('nav-btn-profile').classList.add('active');
-    renderInventory();
-    renderProfileQuests();
+
+    // ── Equipped title badge (manual, not auto-calculated) ──────────────────
+    const titleBadge = document.getElementById('profile-title-badge');
+    if (titleBadge) {
+        const eq = OriaState.equipped_title || '';
+        if (eq) {
+            titleBadge.textContent = eq;
+            titleBadge.style.display = 'inline-block';
+        } else {
+            titleBadge.style.display = 'none';
+        }
+    }
+
+    // ── Title select dropdown (only includes claimed titles) ──────────────
+    const titleSelectContainer = document.getElementById('title-select-container');
+    if (titleSelectContainer) {
+        const titleRewards = { 5: 'Cyber Initiate', 10: 'Neural Hacker', 20: 'System Overlord' };
+        const claimed = OriaState.claimed_rewards || [1];
+        const unlockedTitles = Object.entries(titleRewards)
+            .filter(([lvl]) => claimed.includes(parseInt(lvl)))
+            .map(([, title]) => title);
+
+        if (unlockedTitles.length === 0) {
+            titleSelectContainer.innerHTML = `
+                <p class="fw-bold mb-1" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 0.8rem; letter-spacing: 0.08em;">EQUIPPED TITLE</p>
+                <p class="text-muted small mb-0">
+                    🔐 No titles earned yet. Claim the Lv. 5 reward in the <a href="#" onclick="window.showRewards(event)" class="text-primary fw-bold">Rewards tab</a>!
+                </p>`;
+        } else {
+            const current = OriaState.equipped_title || '';
+            const options = ['<option value="">(No title)</option>']
+                .concat(unlockedTitles.map(t =>
+                    `<option value="${t}"${t === current ? ' selected' : ''}>${t}</option>`
+                )).join('');
+
+            titleSelectContainer.innerHTML = `
+                <p class="fw-bold mb-2" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; font-size: 0.8rem; letter-spacing: 0.08em;">EQUIPPED TITLE</p>
+                <select id="equipped-title-select" class="form-select form-select-sm title-select-themed">
+                    ${options}
+                </select>`;
+
+            document.getElementById('equipped-title-select').addEventListener('change', async function () {
+                const newTitle = this.value;
+                OriaState.equipped_title = newTitle;
+
+                // 1. Update profile badge instantly
+                if (titleBadge) {
+                    if (newTitle) {
+                        titleBadge.textContent = newTitle;
+                        titleBadge.style.display = 'inline-block';
+                    } else {
+                        titleBadge.style.display = 'none';
+                    }
+                }
+
+                // 2. Persist to backend
+                try {
+                    await saveStateAPI();
+                } catch (err) {
+                    console.error('Title save failed:', err);
+                }
+
+                // 3. If the stats/leaderboard view is visible, re-render it immediately
+                const statsView = document.getElementById('stats-view');
+                if (statsView && !statsView.classList.contains('d-none')) {
+                    // fetchLeaderboardAPI returns server data which now has the new equipped_title
+                    // But we can do an optimistic local update too:
+                    document.querySelectorAll('.leaderboard-current-user-title').forEach(el => {
+                        el.textContent = newTitle || '';
+                    });
+                }
+            });
+        }
+    }
+
+    // ── Lv3 roulette gate (frontend visual) ────────────────────────────────
+    const rouletteArea = document.getElementById('roulette-area');
+    const spinBtn = document.getElementById('btn-spin-roulette');
+    const rouletteMsg = document.getElementById('roulette-msg');
+    if (rouletteArea && spinBtn) {
+        if (OriaState.level < 3) {
+            rouletteArea.classList.add('roulette-locked-overlay');
+            spinBtn.textContent = '🔒 Unlocks at Lv. 3';
+            spinBtn.classList.add('btn-secondary');
+            spinBtn.classList.remove('btn-primary');
+            if (rouletteMsg) {
+                rouletteMsg.textContent = `Reach Level 3 to unlock Skin Roulette. (Current: Lv. ${OriaState.level})`;
+                rouletteMsg.className = 'text-warning small mt-2 mb-0 fw-bold';
+            }
+        } else {
+            rouletteArea.classList.remove('roulette-locked-overlay');
+            if (spinBtn.textContent.includes('Unlocks')) {
+                spinBtn.innerHTML = `SPIN (<img src="/static/img/star-icon.svg" width="18" height="18" alt="Star" style="vertical-align: middle; margin-top: -3px;"> 100)`;
+            }
+            spinBtn.classList.remove('btn-secondary');
+            spinBtn.classList.add('btn-primary');
+            if (rouletteMsg && rouletteMsg.textContent.includes('Reach')) {
+                rouletteMsg.textContent = '';
+            }
+        }
+    }
+};
+
+window.showRewards = function (e) {
+    if (e) e.preventDefault();
+    document.getElementById('dashboard-view').classList.add('d-none');
+    document.getElementById('profile-view').classList.add('d-none');
+    document.getElementById('stats-view').classList.add('d-none');
+    document.getElementById('rewards-view').classList.remove('d-none');
+    document.getElementById('header-gamification-stats').classList.add('d-none');
+    document.getElementById('nav-btn-home').classList.remove('active');
+    document.getElementById('nav-btn-stats').classList.remove('active');
+    document.getElementById('nav-btn-profile').classList.remove('active');
+    document.getElementById('nav-btn-rewards').classList.add('active');
+
+    const rewardsLevelEl = document.getElementById('rewards-current-level');
+    if (rewardsLevelEl) rewardsLevelEl.textContent = OriaState.level;
+
+    const claimed = OriaState.claimed_rewards || [1];
+
+    // Render status column for each row
+    document.querySelectorAll('.rewards-status').forEach(cell => {
+        const requiredLevel = parseInt(cell.getAttribute('data-level'), 10);
+        cell.innerHTML = '';
+
+        if (claimed.includes(requiredLevel)) {
+            // Already claimed
+            cell.innerHTML = '<span class="fw-bold" style="color: var(--bs-success);">\u2713 Claimed</span>';
+        } else if (OriaState.level >= requiredLevel) {
+            // Eligible — show Claim button
+            const btn = document.createElement('button');
+            btn.className = 'btn btn-sm btn-primary fw-bold rounded-pill px-3';
+            btn.textContent = 'Claim';
+            btn.dataset.level = requiredLevel;
+            btn.addEventListener('click', async function () {
+                btn.disabled = true;
+                btn.textContent = '...';
+                try {
+                    const data = await claimRewardAPI(requiredLevel);
+                    // Sync coins from server
+                    OriaState.coins = data.coins;
+                    OriaState.claimed_rewards = data.claimed_rewards;
+                    updateDOMState();
+                    // Re-render all status cells and refresh title select
+                    window.showRewards();
+                    // If profile is not showing, still refresh select next time it opens
+                } catch (err) {
+                    btn.disabled = false;
+                    btn.textContent = 'Claim';
+                    const msg = err.message || 'Claim failed';
+                    cell.innerHTML += `<br><small class="text-danger">${msg}</small>`;
+                }
+            });
+            cell.appendChild(btn);
+        } else {
+            // Locked
+            cell.innerHTML = `<span class="badge" style="background: rgba(128,128,128,0.2); color: var(--text-muted);">Lv. ${requiredLevel} needed</span>`;
+        }
+    });
 };
 
 window.addEventListener('achievementUnlocked', (e) => {

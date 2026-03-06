@@ -16,13 +16,11 @@ def register():
         pronouns_list = request.form.getlist('pronoun')
         pronouns = ", ".join(pronouns_list)
         
-        existing_user = User.query.filter((User.username == name) | (User.email == email)).first()
+        existing_user = User.query.filter(
+            (User.username == name) | (User.email == email)
+        ).first()
         if existing_user:
-            if check_password_hash(existing_user.password, password):
-                session['user_id'] = existing_user.id
-                session['username'] = existing_user.username
-                return redirect(url_for('views.home'))
-            flash("User with this name or email already exists!", "error")
+            flash("Username or email is already in use. Please try a different one.", "error")
             return redirect(url_for('auth.register'))
 
         hashed_password = generate_password_hash(password, method='pbkdf2:sha256')

@@ -5,7 +5,11 @@ export const OriaState = {
     quests: [],
     daily_quests: [],
     owned_skins: ["default"],
-    equipped_skin: "default"
+    equipped_skin: "default",
+    current_streak: 0,
+    achievements: [],
+    claimed_rewards: [1],   // level 1 is always claimed by default
+    equipped_title: ""      // the title the user has chosen to display
 };
 
 export const storeItems = [

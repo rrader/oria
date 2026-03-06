@@ -207,7 +207,8 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  padding: 1rem;
+  /* Mobile notch / Dynamic Island safe area */
+  padding: calc(env(safe-area-inset-top, 20px) + 0.75rem) 1rem 0.75rem;
 }
 
 .nav_header h1 {
@@ -921,4 +922,63 @@ body {
   margin: 0;
   font-size: 0.9rem;
   color: var(--text-main);
+}
+
+/* ── Rewards table: dark-mode fix ────────────────────────────────────────────
+   Bootstrap's .table forces --bs-table-bg: white.
+   Override to transparent so the table inherits the .glass-card background
+   and stays readable in both light and dark themes.
+*/
+#rewards-view .table {
+  --bs-table-bg: transparent;
+  --bs-table-hover-bg: rgba(255, 255, 255, 0.05);
+  color: var(--text-main);
+  border-color: var(--glass-border);
+}
+
+#rewards-view .table th,
+#rewards-view .table td {
+  border-color: var(--glass-border);
+  color: var(--text-main);
+  background-color: transparent !important;
+}
+
+#rewards-view .table thead tr {
+  background: var(--primary-gradient) !important;
+}
+
+#rewards-view .table thead th {
+  color: #fff !important;
+  border: none;
+}
+
+/* Lv3 roulette locked visual */
+.roulette-locked-overlay {
+  opacity: 0.4;
+  pointer-events: none;
+  filter: grayscale(0.8);
+  transition: opacity 0.3s, filter 0.3s;
+}
+
+/* Equipped-title select: theme-aware Bootstrap override */
+.title-select-themed {
+  background-color: var(--card-bg) !important;
+  color: var(--text-main) !important;
+  border-color: var(--glass-border) !important;
+}
+
+.title-select-themed:focus {
+  background-color: var(--card-bg) !important;
+  color: var(--text-main) !important;
+  border-color: var(--accent-blue) !important;
+  box-shadow: 0 0 0 0.2rem rgba(100, 149, 237, 0.2) !important;
+}
+
+/* Title badge vertical alignment */
+.badge.leaderboard-title-badge,
+#profile-title-badge {
+  vertical-align: middle;
+  position: relative;
+  top: -1px;
+  line-height: 1.3;
 }

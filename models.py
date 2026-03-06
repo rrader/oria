@@ -21,6 +21,9 @@ class User(db.Model):
     current_streak = db.Column(db.Integer, default=0)
     last_active_date = db.Column(db.String(20), default='')
     achievements = db.Column(db.Text, default='[]')
+    onboarding_data = db.Column(db.Text, default='{}')
+    claimed_rewards = db.Column(db.Text, default='[1]')
+    equipped_title = db.Column(db.String(64), default='')
 
     def __init__(self, username, email, password, pronouns=""):
         self.username = username
@@ -39,6 +42,9 @@ class User(db.Model):
         self.current_streak = 0
         self.last_active_date = ''
         self.achievements = '[]'
+        self.onboarding_data = '{}'
+        self.claimed_rewards = '[1]'
+        self.equipped_title = ''
 
     def get_chat_history(self):
         try:
@@ -84,6 +90,24 @@ class User(db.Model):
 
     def set_achievements(self, achievements_list):
         self.achievements = json.dumps(achievements_list)
+
+    def get_onboarding_data(self):
+        try:
+            return json.loads(self.onboarding_data or '{}')
+        except Exception:
+            return {}
+
+    def set_onboarding_data(self, data_dict):
+        self.onboarding_data = json.dumps(data_dict)
+
+    def get_claimed_rewards(self):
+        try:
+            return json.loads(self.claimed_rewards or '[1]')
+        except Exception:
+            return [1]
+
+    def set_claimed_rewards(self, rewards_list):
+        self.claimed_rewards = json.dumps(rewards_list)
 
     def __repr__(self):
         return f'<User {self.username}>'

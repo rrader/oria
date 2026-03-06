@@ -1,17 +1,43 @@
 import { OriaState } from './state.js';
 
+// ─── Core API wrapper ────────────────────────────────────────────────────────
+
+async function apiFetch(url, options = {}) {
+    const res = await fetch(url, options);
+    if (!res.ok) {
+        // Attempt to read a JSON error body, fall back to status text
+        let errMsg = `HTTP ${res.status}`;
+        try {
+            const errBody = await res.json();
+            errMsg = errBody.error || errMsg;
+        } catch (_) { /* ignore non-JSON error bodies */ }
+        throw new Error(errMsg);
+    }
+    return res.json();
+}
+
+// ─── Exported API functions ──────────────────────────────────────────────────
+
 export async function fetchUserState() {
-    const res = await fetch('/api/user/state');
-    return await res.json();
+    return apiFetch('/api/user/state');
 }
 
 export async function saveStateAPI() {
-    const res = await fetch('/api/user/update', {
+    // Only sends quest structure and daily quest state.
+    // XP / coins / level are intentionally excluded — they are
+    // computed server-side via awardXPActionAPI().
+    const payload = {
+        quests: OriaState.quests,
+        daily_quests: OriaState.daily_quests,
+        achievements: OriaState.achievements,
+        claimed_rewards: OriaState.claimed_rewards,
+        equipped_title: OriaState.equipped_title,
+    };
+    const data = await apiFetch('/api/user/update', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(OriaState)
+        body: JSON.stringify(payload)
     });
-    const data = await res.json();
 
     if (data.newly_unlocked && data.newly_unlocked.length > 0) {
         data.newly_unlocked.forEach(ach => {
@@ -26,64 +52,81 @@ export async function saveStateAPI() {
     return data;
 }
 
+/**
+ * Award XP via the authoritative server-side endpoint.
+ * The backend validates the amount and computes the new xp/coins/level.
+ * Returns: { xp, coins, level, leveled_up, new_level }
+ */
+export async function awardXPActionAPI(amount) {
+    return apiFetch('/api/user/action', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ type: 'award_xp', amount })
+    });
+}
+
+/**
+ * Claim a level reward. Backend validates the level requirement and
+ * prevents double-claiming. Returns updated coins and claimed_rewards.
+ */
+export async function claimRewardAPI(level) {
+    return apiFetch('/api/rewards/claim', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ level })
+    });
+}
+
 export async function refreshDailyQuestsAPI() {
-    const res = await fetch('/api/user/daily_refresh', {
+    return apiFetch('/api/user/daily_refresh', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
     });
-    return await res.json();
 }
 
 export async function generateQuizAPI(topic) {
-    const res = await fetch('/api/quiz/generate', {
+    return apiFetch('/api/quiz/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ topic })
     });
-    return await res.json();
 }
 
 export async function explainQuizAPI(question, user_answer, correct_answer) {
-    const res = await fetch('/api/quiz/explain', {
+    return apiFetch('/api/quiz/explain', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ question, user_answer, correct_answer })
     });
-    return await res.json();
 }
 
 export async function fetchChatHistoryAPI() {
-    const res = await fetch('/api/chat/history');
-    return await res.json();
+    return apiFetch('/api/chat/history');
 }
 
 export async function sendChatMessageAPI(message, isQuickQuest) {
-    const res = await fetch('/api/chat', {
+    return apiFetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ message: message, quick_quest: isQuickQuest })
     });
-    return await res.json();
 }
 
 export async function spinRouletteAPI() {
-    const res = await fetch('/api/store/roulette', {
+    return apiFetch('/api/store/roulette', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' }
     });
-    return await res.json();
 }
 
 export async function equipSkinAPI(skin_id) {
-    const res = await fetch('/api/store/equip', {
+    return apiFetch('/api/store/equip', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ skin_id })
     });
-    return await res.json();
 }
 
 export async function fetchLeaderboardAPI() {
-    const res = await fetch('/api/leaderboard');
-    return await res.json();
+    return apiFetch('/api/leaderboard');
 }
