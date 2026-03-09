@@ -132,7 +132,7 @@
                         </svg>
                     </h5>
                     <div class="collapse" id="questsCollapseContainer">
-                        <div id="quests-container" class="d-flex flex-column gap-3">
+                        <div id="quests-container" class="d-flex flex-column gap-3 scrollable-quest-list">
                             <!-- Quests injected by JS -->
                             <p class="text-muted small text-center my-3" id="no-quests-msg">No quests yet. Ask ORIA or
                                 use Quick
@@ -253,6 +253,23 @@
 
         <div class="row text-start align-items-start">
             <div class="col-lg-5 mb-4">
+                <!-- Focus Areas (Analytics) -->
+                <div class="glass-card p-4 mb-4 text-center"
+                    style="border: 1px solid var(--glass-border); background: var(--card-bg);">
+                    <h4 class="fw-bold mb-3 d-flex align-items-center justify-content-center">
+                        <svg class="me-2 text-info" xmlns="http://www.w3.org/2000/svg" width="24" height="24"
+                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 3v18h18"></path>
+                            <path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"></path>
+                        </svg>
+                        Focus Areas
+                    </h4>
+                    <div style="position: relative; height:250px; width:100%; display: flex; justify-content: center;">
+                        <canvas id="productivityChart" style="max-height: 250px;"></canvas>
+                    </div>
+                </div>
+
                 <!-- Streak & Level Banner -->
                 <div class="glass-card p-4 mb-4 text-center"
                     style="background: var(--card-bg-solid); border: 2px solid var(--accent-pink);">

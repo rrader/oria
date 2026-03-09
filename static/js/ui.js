@@ -1326,6 +1326,92 @@ export function showAchievementBanner(id) {
     }, 4000);
 }
 
+let productivityChartInstance = null;
+
+function renderAnalyticsChart() {
+    const canvas = document.getElementById('productivityChart');
+    if (!canvas) return;
+
+    // Count Categories
+    const counts = {
+        'Study & Exams': 0,
+        'Project & Coding': 0,
+        'Habits & Routine': 0,
+        'General': 0
+    };
+
+    if (OriaState && OriaState.quests) {
+        OriaState.quests.forEach(q => {
+            const cat = q.category || 'General';
+            if (counts[cat] !== undefined) {
+                counts[cat]++;
+            } else {
+                counts['General']++;
+            }
+        });
+    }
+
+    const dataValues = [
+        counts['Study & Exams'],
+        counts['Project & Coding'],
+        counts['Habits & Routine'],
+        counts['General']
+    ];
+
+    // Destroy previous instance to prevent overlapping glitches
+    if (productivityChartInstance) {
+        productivityChartInstance.destroy();
+    }
+
+    const ctx = canvas.getContext('2d');
+    productivityChartInstance = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Study & Exams', 'Project & Coding', 'Habits & Routine', 'General'],
+            datasets: [{
+                data: dataValues,
+                backgroundColor: [
+                    '#00f0ff', // Cyan
+                    '#ff003c', // Neon Pink
+                    '#7000ff', // Purple
+                    '#00ff66'  // Neon Green
+                ],
+                borderWidth: 0,
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: '70%',
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: 'var(--text-main)',
+                        font: {
+                            family: "'Outfit', sans-serif",
+                            size: 11
+                        },
+                        padding: 15,
+                        usePointStyle: true
+                    }
+                },
+                tooltip: {
+                    backgroundColor: 'rgba(10, 10, 18, 0.9)',
+                    titleColor: '#fff',
+                    bodyColor: '#fff',
+                    borderColor: 'var(--glass-border-solid)',
+                    borderWidth: 1,
+                    padding: 10,
+                    cornerRadius: 8,
+                    displayColors: true
+                }
+            }
+        }
+    });
+}
+
 window.showStats = function (e) {
     if (e) e.preventDefault();
     document.getElementById('dashboard-view').classList.add('d-none');
@@ -1358,6 +1444,7 @@ window.showStats = function (e) {
         }
     }
 
+    renderAnalyticsChart();
     renderLeaderboard();
 };
 

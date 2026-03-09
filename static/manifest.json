@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "#ffffff",
     "theme_color": "#89aff0",
-    "description": "Premium personal assistant for your daily notes and tasks.",
+    "description": "Your personal assistant for your daily notes and tasks.",
     "icons": [
         {
             "src": "/static/img/IMG_6064.PNG",
