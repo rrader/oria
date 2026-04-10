@@ -35,27 +35,14 @@ app.config['PERMANENT_SESSION_LIFETIME'] = 86400  # 24 hours
 csrf = CSRFProtect(app)
 
 # ── Database Configuration ──────────────────────────────────────────────────
-db_url = os.environ.get('DATABASE_URL', 'sqlite:///users.db')
-# Heroku-style fix: postgres:// → postgresql://
-if db_url.startswith('postgres://'):
-    db_url = db_url.replace('postgres://', 'postgresql://', 1)
-
-app.config['SQLALCHEMY_DATABASE_URI'] = db_url
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///users.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-# DB-specific engine options
-if db_url.startswith('sqlite'):
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        "connect_args": {"timeout": 30},
-        "pool_pre_ping": True,
-    }
-else:
-    # PostgreSQL pool settings
-    app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
-        "pool_pre_ping": True,
-        "pool_size": 5,
-        "max_overflow": 10,
-    }
+# SQLite concurrency settings (C-06)
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = {
+    "connect_args": {"timeout": 30},
+    "pool_pre_ping": True,
+}
 
 from models import db, User, ExclusiveTitle, AdminLog
 db.init_app(app)
@@ -63,7 +50,7 @@ db.init_app(app)
 # Create database tables + enable WAL mode for SQLite (C-06)
 with app.app_context():
     db.create_all()
-    if db_url.startswith('sqlite'):
+    if app.config['SQLALCHEMY_DATABASE_URI'].startswith('sqlite'):
         try:
             from sqlalchemy import text
             db.session.execute(text("PRAGMA journal_mode=WAL"))
